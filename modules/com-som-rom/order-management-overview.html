@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.1 Order Management Overview &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.1: Order Management Overview — The three-layer order model, source-of-record ownership, TM Forum APIs, and common order types."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.1 Order Management Overview</span>
+    </nav>
+
+    <h1>3.1 Order Management Overview</h1>
+    <p class="subtitle">The Big Picture &mdash; Why Telcos Need a Layered Order Model</p>
+
+    <!-- ============================================================ -->
+    <h2>What Is Order Management in Telecom?</h2>
+    <p>Order management in telecommunications is the set of business processes, systems, and data flows that govern how a customer request is transformed into a commercially valid order, decomposed into technical service and resource instructions, and finally activated on the network. It spans the entire lifecycle from the moment a customer clicks "Buy" in a web portal or a sales representative submits a quote through CPQ, to the point where the service is live, the customer is billed, and the asset is recorded in inventory.</p>
+    <p>Unlike order management in most other industries, telecom order management must handle extreme complexity: multi-layered product catalogs, hybrid physical/virtual network resources, regulatory compliance, simultaneous delivery of multiple service types, and fault or cancellation handling at any point in the lifecycle. A single order for a business VPN service, for example, may require the coordinated configuration of MPLS routers in fifty locations, each with its own VLAN, QoS policy, and IP addressing scheme.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> In traditional telecom architectures, order management logic was tightly coupled to individual network element managers and billing systems. Modern, catalog-driven BSS/OSS platforms decouple this logic into three distinct layers &mdash; Commercial, Service, and Resource &mdash; each with its own order type, lifecycle, and system of record.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Why Telcos Need Layered Order Management</h2>
+    <p>Before the adoption of TM Forum's Open Digital Architecture (ODA) and the layered catalog model, telcos often built monolithic order management systems that attempted to handle everything from price calculation to network element configuration. These systems were brittle, difficult to change, and tightly coupled to specific network technologies. A change to a pricing rule risked breaking network activation, and vice versa.</p>
+    <p>The layered order management model addresses these problems by introducing clear separation of concerns:</p>
+    <ul>
+      <li><strong>Commercial Agility:</strong> Product managers can create new offers, bundle services, and change pricing without impacting service design or network configuration. The commercial layer operates independently, mapping product offerings to existing service specifications through the catalog.</li>
+      <li><strong>Technology Abstraction:</strong> Service designers can model services using technology-agnostic Customer Facing Services (CFS) that decompose into Resource Facing Services (RFS). The network layer can evolve from TDM to MPLS to SD-WAN without requiring changes to the commercial order or the service definition.</li>
+      <li><strong>Orchestration Isolation:</strong> Each order layer has its own orchestration engine, state machine, and persistence. A resource order can be rolled back independently without cancelling the commercial order. A service order can be suspended while awaiting third-party circuit delivery without blocking other service items.</li>
+      <li><strong>Reuse and Consistency:</strong> A single service specification (e.g., "MPLS VPN Port") can be referenced by dozens of different product offerings. A single RFS configuration (e.g., "QoS Policy Set") can be reused across hundreds of services. The layered model eliminates duplication and ensures consistent activation behaviour.</li>
+      <li><strong>Audit and Compliance:</strong> Each layer maintains its own order history, state transitions, and journal. This provides a complete audit trail from commercial intent through technical design to network activation &mdash; essential for regulatory compliance and dispute resolution.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>The Three-Layer Order Model (COM / SOM / ROM)</h2>
+    <p>The three-layer order model is the backbone of modern telecom order management. It decomposes order handling into three distinct domains, each with its own order type, lifecycle, system of record, and TM Forum API standard.</p>
+
+    <div class="diagram-box">
+      <div class="layer layer-com">Commercial Order (COM) &mdash; TMF622</div>
+      <div class="arrow">&darr; Decomposition &amp; Mapping</div>
+      <div class="layer layer-som">Service Order (SOM) &mdash; TMF641</div>
+      <div class="arrow">&darr; Decomposition &amp; Mapping</div>
+      <div class="layer layer-rom">Resource Order (ROM) &mdash; TMF652</div>
+      <div class="label">Each layer has its own order state machine, persistence store, and orchestration engine</div>
+    </div>
+
+    <h3>Commercial Order Management (COM)</h3>
+    <p>COM is the topmost layer, responsible for capturing, validating, and managing the commercial aspects of a customer order. It operates on <strong>Product Offerings</strong> and <strong>Product Specifications</strong> defined in the Product Catalog (TMF620). A commercial order contains one or more <strong>order items</strong>, each referencing a product offering with agreed-upon pricing, terms, and characteristics. COM validates commercial eligibility, performs credit checks, manages approvals, and decomposes each product offering item into the CFS specifications that must be delivered.</p>
+
+    <h3>Service Order Management (SOM)</h3>
+    <p>SOM sits in the middle layer, responsible for designing, tracking, and managing the services that fulfil the commercial order. It operates on <strong>Service Specifications</strong> defined in the Service Catalog (TMF633). A service order contains <strong>order items</strong> referencing Customer Facing Services (CFS) and Resource Facing Services (RFS). SOM designs the service topology, assigns service identifiers, manages the service lifecycle state, and decomposes each CFS into the RFS and resource requirements needed to deliver it.</p>
+
+    <h3>Resource Order Management (ROM)</h3>
+    <p>ROM is the bottom layer, responsible for allocating, configuring, and activating the physical and logical network resources. It operates on <strong>Resource Specifications</strong> defined in the Resource Catalog (TMF634). A resource order contains <strong>order items</strong> referencing RFS or directly referencing resource specifications. ROM dispatches activation requests to domain controllers and network element managers via protocols such as NETCONF, RESTCONF, or vendor-specific APIs, and tracks the activation state of each resource through to completion.</p>
+
+    <!-- ============================================================ -->
+    <h2>Source-of-Record Ownership</h2>
+    <p>A critical architectural concept in layered order management is the distinction between different types of data ownership. Each data entity in the order lifecycle has a designated <strong>system of record</strong> (the authoritative source), <strong>system of engagement</strong> (the user-facing interface), and <strong>system of reference</strong> (a read-only copy used for lookup).</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Entity</th>
+            <th>System of Record</th>
+            <th>System of Engagement</th>
+            <th>System of Reference</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Customer / Account</td>
+            <td>CRM (TMF629)</td>
+            <td>CRM Portal</td>
+            <td>COM, SOM, Billing</td>
+            <td>Customer data is mastered in CRM and referenced by all downstream systems.</td>
+          </tr>
+          <tr>
+            <td>Product Offering / Specification</td>
+            <td>Product Catalog (TMF620)</td>
+            <td>CPQ / Sales Portal</td>
+            <td>COM, Order Capture</td>
+            <td>Product Catalog is the single source of truth for all commercial offer definitions.</td>
+          </tr>
+          <tr>
+            <td>Commercial Order</td>
+            <td>COM (Order Capture system)</td>
+            <td>CRM / CPQ / Portal</td>
+            <td>BI, Reporting, SOM</td>
+            <td>The commercial order is created and owned by the COM system, typically a CRM or dedicated order hub.</td>
+          </tr>
+          <tr>
+            <td>Service Specification</td>
+            <td>Service Catalog (TMF633)</td>
+            <td>Service Designer</td>
+            <td>COM, SOM, SLM</td>
+            <td>Service specifications define CFS and RFS structures independent of commercial packaging.</td>
+          </tr>
+          <tr>
+            <td>Service Order</td>
+            <td>SOM (Service Orchestrator)</td>
+            <td>Service Operations</td>
+            <td>COM, SLM, ROM</td>
+            <td>The service order is created by SOM upon decomposition of the commercial order.</td>
+          </tr>
+          <tr>
+            <td>Service Instance (CFS / RFS)</td>
+            <td>SLM / Service Inventory (TMF638)</td>
+            <td>Service Operations</td>
+            <td>COM, SOM, ROM, Assurance</td>
+            <td>The active service instance is recorded in the Service Inventory / SLM installed base.</td>
+          </tr>
+          <tr>
+            <td>Resource Specification</td>
+            <td>Resource Catalog (TMF634)</td>
+            <td>Network Planning</td>
+            <td>SOM, ROM</td>
+            <td>Resource specifications define the device types, logical resources, and network capabilities.</td>
+          </tr>
+          <tr>
+            <td>Resource Order</td>
+            <td>ROM (Resource Orchestrator)</td>
+            <td>Network Operations</td>
+            <td>SOM, SLM</td>
+            <td>The resource order is created by ROM upon decomposition of the service order.</td>
+          </tr>
+          <tr>
+            <td>Resource Instance</td>
+            <td>Resource Inventory (TMF639)</td>
+            <td>Network Inventory</td>
+            <td>SOM, ROM, Assurance, Planning</td>
+            <td>Physical and logical resources are recorded in the Resource Inventory / CMDB.</td>
+          </tr>
+          <tr>
+            <td>Billing Account</td>
+            <td>Billing System</td>
+            <td>Customer Portal / CRM</td>
+            <td>CRM, COM</td>
+            <td>Billing data is mastered in the billing/rating engine and referenced for invoice generation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>TM Forum APIs for Order Management</h2>
+    <p>The TM Forum Open API suite provides standardized RESTful interfaces for each layer of the order management stack. These APIs enable interoperability between best-of-breed vendor components and support the decomposition chain from commercial order through to resource activation.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>API</th>
+            <th>Name</th>
+            <th>Layer</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TMF620</td>
+            <td>Product Catalog Management</td>
+            <td>Commercial</td>
+            <td>Manage product offerings, product specifications, and their relationships. Provides the commercial catalogue that drives order capture and decomposition.</td>
+          </tr>
+          <tr>
+            <td>TMF622</td>
+            <td>Product Ordering Management</td>
+            <td>Commercial (COM)</td>
+            <td>Create, update, and manage commercial product orders. Supports order items, state transitions, pricing, and characterisation.</td>
+          </tr>
+          <tr>
+            <td>TMF629</td>
+            <td>Customer Management</td>
+            <td>Commercial</td>
+            <td>Manage customer accounts and party profiles. Used by COM to validate customer eligibility, credit status, and account hierarchy.</td>
+          </tr>
+          <tr>
+            <td>TMF633</td>
+            <td>Service Catalog Management</td>
+            <td>Service</td>
+            <td>Manage service specifications (CFS and RFS), service level specifications, and service relationships.</td>
+          </tr>
+          <tr>
+            <td>TMF638</td>
+            <td>Service Inventory Management</td>
+            <td>Service</td>
+            <td>Manage active service instances and their characteristics. Forms the service-level installed base (SLM).</td>
+          </tr>
+          <tr>
+            <td>TMF641</td>
+            <td>Service Ordering Management</td>
+            <td>Service (SOM)</td>
+            <td>Create, update, and manage service orders. Supports CFS/RFS decomposition, service state transitions, and topology.</td>
+          </tr>
+          <tr>
+            <td>TMF634</td>
+            <td>Resource Catalog Management</td>
+            <td>Resource</td>
+            <td>Manage resource specifications including device types, logical resources, network capabilities, and resource candidates.</td>
+          </tr>
+          <tr>
+            <td>TMF639</td>
+            <td>Resource Inventory Management</td>
+            <td>Resource</td>
+            <td>Manage physical and logical resource instances. Provides the network-side inventory (CMDB).</td>
+          </tr>
+          <tr>
+            <td>TMF652</td>
+            <td>Resource Ordering Management</td>
+            <td>Resource (ROM)</td>
+            <td>Create, update, and manage resource orders. Handles resource allocation, activation, and decommissioning.</td>
+          </tr>
+          <tr>
+            <td>TMF667</td>
+            <td>Document Management</td>
+            <td>Cross-Layer</td>
+            <td>Manage attachments and documents associated with orders, such as signed contracts, SOWs, and network diagrams.</td>
+          </tr>
+          <tr>
+            <td>TMF696</td>
+            <td>Order Management</td>
+            <td>Cross-Layer</td>
+            <td>Aggregated order view across all three layers. Provides a unified order tracking dashboard for customer service representatives.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Common Order Types and Their Decomposition</h2>
+    <p>Telecom operators handle a wide variety of order types, each with different decomposition patterns and lifecycle requirements. The following table summarizes the most common order types and how they map through the COM/SOM/ROM hierarchy.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order Type</th>
+            <th>Description</th>
+            <th>COM Action</th>
+            <th>SOM / ROM Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>New Connection</td>
+            <td>A new service activation for a new or existing customer. May be a simple residential broadband line or a complex multi-site business VPN.</td>
+            <td>Validate, price, approve, create product order</td>
+            <td>SOM designs CFS/RFS topology. ROM activates resources across domains (access, aggregation, core).</td>
+          </tr>
+          <tr>
+            <td>Change of Plan</td>
+            <td>Customer upgrades or downgrades their existing service plan (e.g., speed tier change, data cap adjustment).</td>
+            <td>Validate eligibility, recalculate price, update product order</td>
+            <td>SOM modifies CFS characteristics. ROM reconfigures QoS policies and bandwidth profiles.</td>
+          </tr>
+          <tr>
+            <td>Add-on Service</td>
+            <td>Customer adds a new service to an existing account (e.g., adding static IP, VoIP, or cloud storage).</td>
+            <td>Validate bundle eligibility, price add-on, create product order item</td>
+            <td>SOM creates new CFS instances. ROM provisions additional network resources.</td>
+          </tr>
+          <tr>
+            <td>Move / Relocation</td>
+            <td>Customer moves service from one address to another. Involves deactivation at the old location and activation at the new.</td>
+            <td>Validate new address, create move order with two phases</td>
+            <td>SOM decomposes into disconnect (old) and connect (new) service actions. ROM handles dual activation/deactivation.</td>
+          </tr>
+          <tr>
+            <td>Transfer of Ownership</td>
+            <td>Service ownership is transferred from one customer to another. No physical network change.</td>
+            <td>Validate new owner credit, update party role on order</td>
+            <td>SOM updates service ownership attributes. ROM typically has no resource-level change.</td>
+          </tr>
+          <tr>
+            <td>Cancellation / Churn</td>
+            <td>Customer cancels one or more services. May be immediate or scheduled for end of contract.</td>
+            <td>Validate contract terms, calculate early termination fee, create cancellation order</td>
+            <td>SOM decommissions CFS. ROM deactivates and releases network resources, updates inventory.</td>
+          </tr>
+          <tr>
+            <td>Suspend / Restore</td>
+            <td>Temporary suspension of service (e.g., non-payment, vacation hold) followed by restoration.</td>
+            <td>Validate suspension eligibility, update billing status</td>
+            <td>SOM transitions service to suspended state. ROM applies access control lists or administrative down on ports.</td>
+          </tr>
+          <tr>
+            <td>Multi-Service Bundle</td>
+            <td>A complex order combining multiple service types (e.g., broadband + IPTV + fixed voice) with dependencies between services.</td>
+            <td>Validate bundle configuration, apply package pricing, create composite product order</td>
+            <td>SOM handles cross-service dependencies and topology. ROM coordinates activation ordering across service types.</td>
+          </tr>
+          <tr>
+            <td>Wholesale / Resale</td>
+            <td>An order placed by another operator (wholesale customer) for access or capacity services on the host operator's network.</td>
+            <td>Validate wholesale agreement, apply interconnect pricing, create wholesale product order</td>
+            <td>SOM manages virtual circuit CFS. ROM provisions cross-connects and transport capacity.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Orchestration and State Management</h2>
+    <p>Each order layer maintains an independent state machine that governs the lifecycle of its orders. While the specific states may vary by implementation, the TM Forum standard defines a common pattern across all three layers:</p>
+    <ul>
+      <li><strong>Submitted:</strong> The order has been received and validated for completeness. No work has begun.</li>
+      <li><strong>In Progress:</strong> The order is being processed. For COM, this includes decomposition and service order creation. For SOM, this includes service design and resource order creation. For ROM, this includes resource allocation and activation.</li>
+      <li><strong>Pending:</strong> The order is waiting for an external event or manual intervention (e.g., credit approval, third-party circuit delivery, site visit).</li>
+      <li><strong>Held:</strong> The order has been temporarily suspended, typically due to customer request, payment issues, or operational constraints.</li>
+      <li><strong>Completed:</strong> All order items have been successfully fulfilled.</li>
+      <li><strong>Failed:</strong> One or more order items could not be fulfilled and cannot be recovered.</li>
+      <li><strong>Cancelled:</strong> The order was terminated before completion, either by customer request or automated timeout.</li>
+    </ul>
+    <p>A key architectural requirement is that state transitions at one layer must be propagated to dependent orders. For example, if a resource order fails, the parent service order item must transition to a failed or compensation state, which in turn may affect the commercial order item status. This <strong>state propagation</strong> is typically implemented through event-driven mechanisms (e.g., CloudEvents, Kafka, or webhook callbacks) between the order management systems.</p>
+
+    <!-- ============================================================ -->
+    <h2>Key Concepts Recap</h2>
+    <p>Before proceeding to the detailed sections on COM, SOM, and ROM, it is useful to establish the foundational concepts that will be referenced throughout:</p>
+    <ul>
+      <li><strong>Order Item:</strong> A line-level element within an order that represents a single product, service, or resource action (add, modify, delete). Each item has its own state and lifecycle that may differ from the parent order.</li>
+      <li><strong>Decomposition:</strong> The process of breaking down a commercial order item into one or more service order items, and then into resource order items. Decomposition is driven by catalog relationships defined in the Product, Service, and Resource Catalogs.</li>
+      <li><strong>Characteristic:</strong> A key-value pair that captures order-specific attributes (e.g., speed tier = "100Mbps", CIR = "50Mbps"). Characteristics are defined in catalog specifications and populated at order time.</li>
+      <li><strong>State Machine:</strong> Each order and order item has a defined set of states and valid transitions. The state machine governs what actions are possible at any point in the order lifecycle.</li>
+      <li><strong>Compensation:</strong> The set of actions taken to undo a partially completed order when a failure occurs (e.g., releasing resources that were already allocated, reversing billing adjustments).</li>
+      <li><strong>Orchestration:</strong> The coordination of multiple order items, services, and resources to fulfil a single order. Orchestration manages sequencing, dependencies, compensating actions, and state propagation.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Related Modules</h2>
+    <p>The concepts introduced in this overview are deeply connected to other modules in the BSS/OSS Academy curriculum. Understanding these relationships will help you build a complete mental model of the telecom BSS/OSS architecture.</p>
+    <ul>
+      <li><strong>Module 1 &mdash; Foundations:</strong> The fundamental BSS/OSS architecture, catalog-driven design concepts, and the commercial/technical domain separation provide the essential background for the layered order model.</li>
+      <li><strong>Module 2 &mdash; Catalog Modeling:</strong> The three-layer catalog (Product/Service/Resource) is the cornerstone of COM/SOM/ROM. Decomposition rules and characteristic mappings are defined in the catalogs.</li>
+      <li><strong>Module 4 &mdash; Network Inventory &amp; Activation:</strong> The resource inventory and activation domain controllers that ROM interacts with are covered in depth in Module 4.</li>
+      <li><strong>Module 7 &mdash; TM Forum Open APIs:</strong> A detailed reference for the TMF APIs listed above, including request/response examples and implementation patterns.</li>
+      <li><strong>Module 8 &mdash; eTOM &amp; Process Flows:</strong> The business process framework that defines the order management processes within the broader Fulfilment domain.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>Layered order management</strong> (COM/SOM/ROM) is the standard architectural pattern for modern telecom BSS/OSS, separating commercial concerns from service design and network activation.</li>
+        <li><strong>Each layer has dedicated order types, state machines, and systems of record</strong> that are independently scalable and evolvable.</li>
+        <li><strong>Decomposition</strong> is the process of translating commercial order items into service and resource order items, driven by catalog relationships defined in the Product, Service, and Resource Catalogs.</li>
+        <li><strong>Source-of-record ownership</strong> must be clearly defined for every entity in the order lifecycle to avoid data duplication, inconsistency, and reconciliation overhead.</li>
+        <li><strong>TM Forum Open APIs</strong> (TMF622, TMF641, TMF652, and others) provide standardised interfaces for each layer, enabling best-of-breed integration and multi-vendor interoperability.</li>
+        <li><strong>State propagation</strong> between layers is critical &mdash; failures or changes at the resource layer must be reflected upward through service orders to commercial orders.</li>
+        <li><strong>Order items</strong> have independent state machines that may differ from their parent order, allowing partial fulfilment and mixed success/failure scenarios.</li>
+        <li><strong>Compensation and rollback</strong> at each layer must be explicitly designed to handle failures gracefully, releasing partially allocated resources and maintaining data consistency.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links --><div class="section-nav">
+  <a href="../catalog-modeling/connectivity-example.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous Module</span>
+    <span class="nav-title">2.4 Connectivity Example</span>
+  </a><a href="commercial-order-management.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.2 Commercial Order Management (COM)</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

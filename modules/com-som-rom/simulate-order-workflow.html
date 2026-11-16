@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.9 Simulate Order Workflow &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.9: End-to-end order flow simulation — step-by-step journey of an order through the BSS/OSS stack from CRM lead capture to billing activation."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.9 Simulate Order Workflow</span>
+    </nav>
+
+    <h1>3.9 Simulate Order Workflow</h1>
+    <p class="subtitle">End-to-End Order Flow Simulation</p>
+
+    <!-- ============================================================ -->
+    <h2>Why Simulate an Order Workflow?</h2>
+    <p>In a production BSS/OSS environment, an order passes through dozens of systems, state transitions, validation gates, and orchestration steps before a customer&#8217;s service goes live. Understanding this end-to-end flow is essential for architects, developers, and operations teams who need to troubleshoot failures, optimise throughput, and design resilient order lifecycles.</p>
+    <p>Simulating the order workflow reveals the hidden coupling between systems, the timing constraints imposed by manual approval gates, and the data transformation rules that govern how a commercial product offering becomes a configured network resource. It also exposes failure modes that are difficult to reproduce in a test environment&#8212;race conditions between concurrent order items, partial rollback scenarios, and the ripple effect of a resource activation timeout on the commercial order state.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> An end-to-end order simulation is not just a training exercise. It is a critical design artefact that validates the decomposition rules, state propagation logic, and error-handling strategies before any code is deployed to production. Operators who run regular order simulations detect integration defects 60&#37; faster than those who rely on unit tests alone.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>The End-to-End Order Journey</h2>
+    <p>The following table traces a single commercial order for a business MPLS VPN with three sites through every system involved in the BSS/OSS stack. Each row represents a discrete step in the workflow, the system that owns that step, the action performed, and the data record produced at that stage.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Step</th>
+            <th>System</th>
+            <th>Action</th>
+            <th>Data Produced</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1. Lead Capture</td>
+            <td>CRM (Salesforce / Siebel)</td>
+            <td>Sales rep creates an opportunity for a 3-site MPLS VPN with 100 Mbps committed information rate per site. Customer credit score is checked pass.</td>
+            <td>Opportunity record with customer ID, service address, desired start date, and preliminary contract term.</td>
+          </tr>
+          <tr>
+            <td>2. CPQ Configuration</td>
+            <td>CPQ (Salesforce CPQ / Apttus)</td>
+            <td>Sales rep selects product bundle "Business MPLS VPN 3-Site" from the product catalog. Characteristics are captured: CIR=100Mbps, VLAN ID pool, QoS class=Gold. Contract term is set to 36 months.</td>
+            <td>Configured quote with product offering ID, line items, pricing, characteristics, and contract terms.</td>
+          </tr>
+          <tr>
+            <td>3. Pricing &amp; Approval</td>
+            <td>CPQ / CRM</td>
+            <td>List price is retrieved from the product catalog. Volume discount rule (15&#37; for 3+ sites) is applied. The quote total exceeds the sales rep authority threshold, triggering a manager approval workflow via email.</td>
+            <td>Priced quote with discount breakdown, tax calculation, and approval request record with status "Pending Approval".</td>
+          </tr>
+          <tr>
+            <td>4. Order Submission</td>
+            <td>CRM / Order Capture</td>
+            <td>Manager approves the quote. Sales rep submits the order. The order capture system validates mandatory fields, checks product availability, and creates a commercial order via TMF622.</td>
+            <td>TMF622 Product Order (state: Submitted) with order items mapping to the product offering IDs.</td>
+          </tr>
+          <tr>
+            <td>5. Order Validation</td>
+            <td>COM (Order Hub)</td>
+            <td>COM receives the TMF622 product order. It validates customer eligibility against CRM (TMF629), checks for duplicate orders, runs commercial eligibility rules, and transitions the order to "In Progress".</td>
+            <td>Validated order object with enriched characteristics, customer eligibility status, and fraud check results.</td>
+          </tr>
+          <tr>
+            <td>6. Product Decomposition</td>
+            <td>COM / Product Catalog</td>
+            <td>COM queries the Product Catalog (TMF620) to retrieve the product specification structure. The "Business MPLS VPN 3-Site" offering decomposes into three CFS specifications: "MPLS VPN Port" per site, "MPLS VPN Transport", and "QoS Gold Profile".</td>
+            <td>Decomposition map: product offering ID to CFS specification IDs with characteristic mappings and cardinality rules.</td>
+          </tr>
+          <tr>
+            <td>7. Service Order Creation</td>
+            <td>COM / SOM</td>
+            <td>COM calls TMF641 Service Ordering API on the SOM system, passing the CFS specifications, characteristics, and customer context. A service order is created with one order item per CFS.</td>
+            <td>TMF641 Service Order (state: Submitted) with line items referencing CFS specifications and their characteristics.</td>
+          </tr>
+          <tr>
+            <td>8. Service Design</td>
+            <td>SOM / Service Catalog</td>
+            <td>SOM retrieves the service specification from the Service Catalog (TMF633). Each CFS has an associated service topology that defines its relationship to RFS resources. The "MPLS VPN Port" CFS decomposes into "Physical Port" RFS and "Logical Interface" RFS.</td>
+            <td>Service topology design with CFS-to-RFS mappings, relationship types (uses / depends-on), and characteristic inheritance rules.</td>
+          </tr>
+          <tr>
+            <td>9. Resource Order Creation</td>
+            <td>SOM / ROM</td>
+            <td>SOM calls TMF652 Resource Ordering API on the ROM system. A resource order is created with order items for each RFS: physical port allocation, VLAN provisioning, QoS policy creation, and IP address assignment.</td>
+            <td>TMF652 Resource Order (state: Submitted) with resource order items referencing RFS specifications and target network domains.</td>
+          </tr>
+          <tr>
+            <td>10. Resource Allocation</td>
+            <td>ROM / Resource Catalog</td>
+            <td>ROM queries the Resource Catalog (TMF634) to determine resource candidates. It identifies available physical ports on the edge router, VLAN ID pool ranges, and QoS policy templates for the Gold class.</td>
+            <td>Resource allocation plan mapping each RFS order item to a specific resource candidate (device ID, port ID, VLAN range).</td>
+          </tr>
+          <tr>
+            <td>11. Network Activation</td>
+            <td>ROM / Domain Controllers</td>
+            <td>ROM dispatches activation commands to domain controllers: NETCONF to the IP/MPLS domain for MPLS configuration, RESTCONF to the SD-WAN controller for policy enforcement, and SNMP to the access aggregation switch for VLAN provisioning.</td>
+            <td>Activation request records per domain with device configuration payload, transaction ID, and expected completion timeout.</td>
+          </tr>
+          <tr>
+            <td>12. Activation Confirmation</td>
+            <td>Domain Controllers / ROM</td>
+            <td>Each domain controller confirms successful configuration. ROM receives confirmation callbacks, updates resource order item states to "Completed", and records the resource instances in the Resource Inventory (TMF639).</td>
+            <td>TMF639 Resource Inventory records with device identifiers, interface names, VLAN IDs, QoS policy references, and IP addresses.</td>
+          </tr>
+          <tr>
+            <td>13. Service Activation</td>
+            <td>SOM / SLM</td>
+            <td>ROM notifies SOM that all resource orders for a given CFS are completed. SOM transitions the corresponding service order items to "Completed" and creates service instance records in the Service Inventory / SLM (TMF638).</td>
+            <td>TMF638 Service Inventory records: CFS instances with service ID, characteristics, and references to underlying resource instances.</td>
+          </tr>
+          <tr>
+            <td>14. Commercial Order Completion</td>
+            <td>COM</td>
+            <td>SOM notifies COM that all service order items are completed. COM transitions the commercial order to "Completed". The product order status is updated to reflect that delivery is fulfilled.</td>
+            <td>Completed TMF622 Product Order with final state, service IDs, activation timestamps, and audit trail.</td>
+          </tr>
+          <tr>
+            <td>15. Billing Activation</td>
+            <td>Billing System / COM</td>
+            <td>COM publishes a billing activation event to the billing system. The billing system creates a recurring charge schedule for the MPLS VPN service at the agreed price. One-time installation fees are invoiced immediately.</td>
+            <td>Billing account entry with recurring charge plan, installation fee invoice, and service-to-billing-item mapping.</td>
+          </tr>
+          <tr>
+            <td>16. Service Assurance Handoff</td>
+            <td>Assurance System</td>
+            <td>The assurance system ingests the service instance and resource instance data to configure monitoring. Thresholds are set for CIR utilisation (95&#37; alert), latency (50ms warning, 100ms critical), and availability (99.9&#37; SLA).</td>
+            <td>Monitoring configuration records with alarm thresholds, performance management KPIs, and SLA breach notification rules.</td>
+          </tr>
+          <tr>
+            <td>17. Customer Notification</td>
+            <td>CRM / Notification Engine</td>
+            <td>CRM sends a service activation confirmation email to the customer. The notification includes service IDs, activation date, next billing date, and a link to the customer portal for service management.</td>
+            <td>Outbound notification record with delivery status, template used, and customer communication preference (email/SMS).</td>
+          </tr>
+          <tr>
+            <td>18. Order Archival</td>
+            <td>COM / Data Lake</td>
+            <td>The completed order record, along with all service and resource order data, is archived to the data lake for analytics, regulatory compliance, and historical reporting. The data lake applies retention policies based on data classification.</td>
+            <td>Parquet files in the data lake with order data partitioned by date, order type, and customer segment for downstream BI reporting.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>State Propagation Across Layers</h2>
+    <p>One of the most critical aspects of the order simulation is understanding how state changes propagate between the COM, SOM, and ROM layers. These propagation rules determine what happens when an individual order item fails, how partial fulfilment is represented, and whether downstream compensation is triggered automatically.</p>
+    <p>The following propagation rules are observed in the simulation:</p>
+    <ul>
+      <li><strong>Forward propagation (top-down):</strong> When a commercial order item transitions to "In Progress", SOM receives a notification and begins processing the corresponding service order items. Similarly, when a service order item enters "In Progress", ROM begins processing the resource order items. The top-down flow ensures that work begins at each layer as soon as the parent layer is ready.</li>
+      <li><strong>Backward propagation (bottom-up):</strong> When a resource order item completes or fails, ROM notifies SOM, which updates the corresponding service order item state. SOM then notifies COM, which updates the commercial order item state. Failure at any layer must be propagated upward within configurable timeout windows.</li>
+      <li><strong>Partial fulfilment:</strong> A service order item that references five resource order items may complete even if only four resource items succeed, provided the service specification defines a minimum completion threshold (e.g., 80&#37; of resources must be active). The fifth failed resource item enters a compensation state.</li>
+      <li><strong>Compensation chains:</strong> When a resource activation fails after other resources have already been provisioned, ROM executes a compensation plan: deactivate the provisioned resources, release the IP addresses, and return the VLAN IDs to the pool. The compensated state is propagated upward as an "Item Failed" with a compensation detail.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Simulation Failure Scenarios</h2>
+    <p>No order simulation is complete without exercising the failure paths. The following scenarios are commonly simulated to validate the resilience of the order management architecture:</p>
+
+    <h3>Scenario 1: Resource Exhaustion</h3>
+    <p>During step 10 (Resource Allocation), the ROM system discovers that the edge router at one site has no available physical ports. The resource order item for that site enters "Failed" with reason code "PORT_EXHAUSTION". SOM receives the failure notification and checks whether the service specification allows an alternative resource candidate. If the specification defines a secondary router as a fallback, SOM instructs ROM to retry on the alternate device. Otherwise, the service order item transitions to "Failed", and the commercial order item enters a "Partially Fulfilled" state awaiting manual intervention.</p>
+
+    <h3>Scenario 2: Domain Controller Timeout</h3>
+    <p>During step 11 (Network Activation), the NETCONF domain controller for the IP/MPLS domain does not respond within the configured timeout window (120 seconds). ROM retries twice with exponential backoff. After three total attempts, the activation record is marked "Failed_Timeout". ROM transitions the resource order item to "Failed" and initiates compensation for any resources that were successfully provisioned in other domains. The service order item enters a "Pending Manual Recovery" state, and an operations ticket is automatically raised in the OSS ticketing system.</p>
+
+    <h3>Scenario 3: Order Cancellation Mid-Flight</h3>
+    <p>A customer calls to cancel the order after the service order has been created but before resource activation has completed. COM transitions the commercial order to "Cancellation Pending" and sends a cancellation request to SOM. SOM evaluates which service order items are in a cancellable state (items in "Submitted" or "Pending" are cancelled immediately; items in "In Progress" with active resource orders require a compensatable check). ROM receives cancellation instructions for resource order items that have not yet been activated; items that are already activated are scheduled for deactivation within a maintenance window. The commercial order transitions to "Cancelled" only after all child items are confirmed cancelled or decommissioned.</p>
+
+    <!-- ============================================================ -->
+    <h2>Simulation Tooling and Techniques</h2>
+    <p>Operators typically implement order workflow simulation using a combination of the following approaches:</p>
+    <ul>
+      <li><strong>BPMN 2.0 Simulation Engines:</strong> Tools such as Camunda, Flowable, or IBM BPM allow architects to model the order workflow as a BPMN diagram and simulate the execution of tokens through the process. Each lane in the diagram corresponds to a system boundary (CRM, COM, SOM, ROM, Domain Controller). Simulation reports show cycle time, bottleneck activities, and resource utilisation per lane.</li>
+      <li><strong>API Mock Servers:</strong> WireMock, MockServer, or Postman Mock Servers simulate the TMF API endpoints (TMF620, TMF622, TMF629, TMF633, TMF638, TMF641, TMF634, TMF639, TMF652) with configurable response delays, error rates, and state machines. This allows the order management test harness to simulate realistic network latency and failure conditions.</li>
+      <li><strong>Chaos Engineering:</strong> Tools like Chaos Monkey or LitmusCHAOS are integrated into the simulation pipeline to inject random failures: API timeouts, database connection drops, message queue backpressure, and network partition events. The simulation measures how many concurrent failures the order management system can tolerate before violating the SLA for order completion time.</li>
+      <li><strong>Data Lineage Tracing:</strong> OpenTelemetry tracing with Jaeger or Zipkin provides end-to-end visibility into each order's journey. Each simulation run produces a trace tree that shows the timing and success/failure of every API call, state transition, and database operation. Traces that exceed the expected duration are flagged for analysis.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Simulation Metrics and KPIs</h2>
+    <p>A comprehensive order simulation measures the following key performance indicators to validate that the order management architecture meets its design objectives:</p>
+    <ul>
+      <li><strong>Order Cycle Time:</strong> The elapsed time from order submission to commercial order completion. Target: under 5 minutes for fully automated orders, under 4 hours for orders requiring manual approvals.</li>
+      <li><strong>Decomposition Latency:</strong> The time taken for COM to decompose a product offering into CFS specifications and create the service order. Target: under 500 milliseconds per order item.</li>
+      <li><strong>Resource Activation Time:</strong> The time taken for ROM to activate all resources for a given CFS, measured from resource order creation to activation confirmation. Target: under 60 seconds for software-configured resources, under 15 minutes for resources requiring physical intervention.</li>
+      <li><strong>State Propagation Delay:</strong> The time between a state change at the ROM layer and the corresponding state update at the COM layer. Target: under 5 seconds end-to-end.</li>
+      <li><strong>Failure Recovery Rate:</strong> The percentage of simulated failures that are automatically recovered through compensation and retry mechanisms without manual intervention. Target: 95&#37; of resource-level failures, 80&#37; of service-level failures.</li>
+      <li><strong>Throughput:</strong> The maximum number of concurrent order simulations the system can process without exceeding the cycle time target. Target: 50 concurrent orders for a Tier-2 operator, 200+ for a Tier-1 operator.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>The end-to-end order journey spans 18 distinct steps</strong> across CRM, CPQ, COM, SOM, ROM, Domain Controllers, SLM, Billing, Assurance, and Data Lake systems. Each step produces structured data that must be traceable back to the original commercial order.</li>
+        <li><strong>State propagation is bidirectional:</strong> top-down propagation triggers downstream work, while bottom-up propagation reports results. Failure at any layer must be propagated upward within configurable timeout windows to maintain data consistency.</li>
+        <li><strong>Partial fulfilment and compensation chains</strong> are first-class concerns. Service specifications define minimum completion thresholds, and ROM maintains compensation plans for every resource order to enable clean rollback of partially completed activations.</li>
+        <li><strong>Failure scenarios</strong> (resource exhaustion, domain controller timeouts, mid-flight cancellation) must be simulated to validate the order architecture&#8217;s resilience and to determine whether automatic recovery or manual intervention is required.</li>
+        <li><strong>Simulation tooling</strong> includes BPMN simulation engines, API mock servers with configurable failure injection, chaos engineering platforms, and OpenTelemetry-based distributed tracing for end-to-end visibility.</li>
+        <li><strong>Quantitative KPIs</strong> (cycle time, decomposition latency, activation time, propagation delay, failure recovery rate, throughput) must be measured in every simulation to validate architectural decisions and identify optimisation opportunities.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links -->
+    <a href="../../modules/com-som-rom/hybrid-com-som.html" class="btn-primary">
+        Next: 3.10 Hybrid COM/SOM (ACL)
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+      </a>
+    </div><div class="section-nav">
+  <a href="e2e-data-lineage.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.8 E2E Data Lineage</span>
+  </a><a href="hybrid-com-som.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.10 Hybrid COM/SOM (ACL)</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

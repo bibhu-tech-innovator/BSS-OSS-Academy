@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>4.1 Network Inventory Overview - Module 4 | BSS/OSS Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0f172a;
+    border-right: 1px solid #1e293b;
+    padding: 1.5rem 0;
+    overflow-y: auto;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .sidebar-header {
+    padding: 0 1.25rem 1rem;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 0.75rem;
+  }
+  .sidebar-header a {
+    font-size: 1rem; font-weight: 700; color: #f1f5f9;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sidebar-header a:hover { color: #93c5fd; }
+  .sidebar-header small { display: block; font-size: 0.7rem; color: #64748b; font-weight: 400; margin-top: 0.125rem; }
+  .sidebar-nav { display: flex; flex-direction: column; }
+  .sidebar-section { padding: 0 1.25rem; margin-bottom: 0.5rem; }
+  .sidebar-label {
+    font-size: 0.65rem; font-weight: 600; color: #475569; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 0.5rem 0.75rem 0.25rem;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500;
+    color: #94a3b8;
+    transition: all 0.15s;
+    margin-bottom: 1px;
+  }
+  .sidebar-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+  .sidebar-item .num {
+    display: flex; align-items: center; justify-content: center;
+    width: 1.25rem; height: 1.25rem; border-radius: 0.25rem;
+    font-size: 0.625rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .sidebar-item .num-blue { background: #3b82f6; }
+  .sidebar-item .num-emerald { background: #10b981; }
+  .sidebar-item .num-pink { background: #ec4899; }
+  .sidebar-item .num-amber { background: #f59e0b; }
+  .sidebar-item .num-purple { background: #8b5cf6; }
+  .sidebar-item.active-amber { background: rgba(245,158,11,0.12); color: #fcd34d; border-left: 3px solid #f59e0b; border-radius: 0; }
+  .main-content { flex: 1; min-width: 0; padding: 2rem 2.5rem; max-width: 1024px; }
+  .main-content h1 { font-size: 1.75rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.25rem; }
+  .main-content h2 { font-size: 1.375rem; font-weight: 600; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 0.75rem; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  .main-content p { font-size: 0.9375rem; color: #94a3b8; line-height: 1.75; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #94a3b8; line-height: 1.75; padding-left: 1.5rem; margin-bottom: 1rem; }
+  .main-content li { margin-bottom: 0.25rem; }
+  .module-badge {
+    display: inline-flex; align-items: center; gap: 0.375rem;
+    background: rgba(245,158,11,0.15); color: #fcd34d;
+    font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem;
+    border-radius: 9999px; margin-bottom: 1rem;
+  }
+  .module-badge a { color: #fcd34d; }
+  .module-badge a:hover { text-decoration: underline; }
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 1.5rem 0; font-size: 0.875rem;
+  }
+  thead { background: #1e293b; }
+  th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #f1f5f9; border-bottom: 2px solid #334155; }
+  td { padding: 0.75rem 1rem; color: #cbd5e1; border-bottom: 1px solid #1e293b; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .footer {
+    text-align: center; padding: 2rem 1.5rem;
+    color: #64748b; font-size: 0.875rem;
+    border-top: 1px solid #1e293b;
+  }
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-content { padding: 1.5rem; }
+    table { font-size: 0.75rem; }
+    th, td { padding: 0.5rem 0.5rem; }
+  }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Network Inventory &amp; Activation</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link active-amber">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+
+  <!-- Main -->
+  <div class="main-content">
+    <span class="module-badge"><a href="index.html">Module 4</a> / Section 4.1</span>
+    <h1>Network Inventory Overview</h1>
+    <p style="color: #94a3b8; font-size: 1rem; margin-bottom: 2rem;">What network inventory means in telco and why it is the backbone of OSS.</p>
+
+    <h2>What Is Network Inventory?</h2>
+    <p>Network Inventory is the authoritative system of record for all physical and logical resources that make up a telecommunications network. It answers the question: <em>what do we have, where is it, what state is it in, and how is it connected?</em> Every service that a telco delivers ultimately depends on resources tracked in inventory — from the fibre pair in a cable to the VLAN on a router.</p>
+    <p>Inventory is the single source of truth that bridges the commercial world of product offerings and the technical world of network configuration. Without accurate inventory, order fulfilment cannot validate resource availability, activation cannot determine where to configure, and assurance cannot correlate faults to affected services.</p>
+
+    <h2>Physical vs Logical Resources</h2>
+    <p>Inventory resources fall into two fundamental categories:</p>
+
+    <table>
+      <thead>
+        <tr><th>Characteristic</th><th>Physical Resources</th><th>Logical Resources</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Definition</strong></td><td>Tangible network assets with a physical location</td><td>Abstract constructs that exist within or across physical resources</td></tr>
+        <tr><td><strong>Examples</strong></td><td>Routers, switches, ports, cables, racks, chassis, cards, patch panels, towers, shelters</td><td>VLANs, IP subnets, MPLS LSPs, VRFs, tunnels, circuits, L2/L3 VPNs, IP addresses</td></tr>
+        <tr><td><strong>Location</strong></td><td>Geographic or site-level (building, room, rack, slot)</td><td>Topological or domain-based (network, overlay, AS)</td></tr>
+        <tr><td><strong>Lifecycle</strong></td><td>Procure → Install → Commission → Operate → Decommission</td><td>Define → Allocate → Activate → Modify → Release</td></tr>
+        <tr><td><strong>Dependency</strong></td><td>Standalone assets</td><td>Ride on physical resources (a VLAN exists on a port)</td></tr>
+        <tr><td><strong>Source of truth</strong></td><td>Inventory system, asset management, physical audits</td><td>Inventory system, network discovery, IPAM/DCIM systems</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Resource Inventory Lifecycle</h2>
+    <p>The lifecycle of a resource in inventory follows a structured set of states that reflect its real-world status:</p>
+    <ol>
+      <li><strong>Planned</strong> — The resource exists in the design but has not been procured or installed.</li>
+      <li><strong>Installed</strong> — Physical resource is in place but not yet powered or logically configured.</li>
+      <li><strong>Commissioned</strong> — Resource is tested and ready for service activation.</li>
+      <li><strong>In-Service</strong> — Resource is actively carrying customer traffic or supporting services.</li>
+      <li><strong>Maintenance</strong> — Resource is temporarily taken out of service for upgrades or repairs.</li>
+      <li><strong>Decommissioned</strong> — Resource is withdrawn from service and removed from inventory.</li>
+    </ol>
+    <p>This lifecycle must be synchronised with network operations. Inventory should reflect reality — if a technician patches a fibre onto a different port, the inventory record must be updated. Failure to maintain this synchronisation leads to the <em>"inventory drift"</em> problem that plagues many operators.</p>
+
+    <h2>Why Inventory Is Hard</h2>
+    <p>Network inventory is deceptively complex. Unlike a simple asset register, inventory must model intricate connectivity graphs: a circuit traverses multiple devices, each device has dozens of cards, each card has hundreds of ports, and each port carries nested logical constructs. The cardinality explosion is real. A single large operator may track tens of millions of resource instances across dozens of inventory domains — access, transport, IP/MPLS, mobile core, fixed, and data centre.</p>
+    <p>Adding to the difficulty, inventory systems must integrate with:</p>
+    <ul>
+      <li><strong>Order management (ROM)</strong> — to validate resource availability and reserve resources during fulfilment.</li>
+      <li><strong>Activation systems</strong> — to update inventory when configuration changes are applied to the network.</li>
+      <li><strong>Service assurance</strong> — to correlate alarms and faults to the resources and services affected.</li>
+      <li><strong>Discovery tools</strong> — to reconcile inventory records against live network state.</li>
+      <li><strong>Capacity planning</strong> — to forecast when resources will be exhausted.</li>
+    </ul>
+
+    <h2>Inventory in TM Forum SID</h2>
+    <p>The TM Forum Information Framework (SID) models resource inventory as a core domain. The key entities include <em>Resource</em> (base class), <em>PhysicalResource</em>, <em>LogicalResource</em>, <em>ResourceRelationship</em> (for connectivity and dependencies), <em>ResourceSpecification</em> (for catalog-driven resource definitions), and <em>ResourceRole</em> (to distinguish how a resource participates in a service). This model is exposed through TMF 639 (Resource Inventory Management API) and TMF 638 (Resource Catalog Management API).</p>
+
+    <!-- Key Takeaways -->
+    <div style="margin-top: 3rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); border-radius: 0.75rem; padding: 1.5rem;">
+      <h2 style="font-size: 1.125rem; font-weight: 700; color: #fcd34d; margin-bottom: 0.75rem;">Key Takeaways</h2>
+      <ul style="color: #94a3b8; font-size: 0.875rem; line-height: 1.75; padding-left: 1.25rem;">
+        <li>Network inventory is the authoritative source of truth for physical and logical network resources.</li>
+        <li>Physical resources are tangible assets; logical resources are abstract constructs that ride on top of physical infrastructure.</li>
+        <li>The resource lifecycle spans six states from Planned through to Decommissioned.</li>
+        <li>Inventory must be synchronised with live network state to avoid drift.</li>
+        <li>TM Forum SID provides the canonical model for resource inventory, exposed via TMF 639 and TMF 638 APIs.</li>
+      </ul>
+    </div>
+
+    <div class="section-nav">
+  <a href="../com-som-rom/hybrid-com-som.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous Module</span>
+    <span class="nav-title">3.10 Hybrid COM/SOM (ACL)</span>
+  </a><a href="ems-nms-architecture.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">4.2 EMS/NMS Architecture</span>
+  </a>
+</div>
+
+    <footer class="footer" style="padding-left: 0; padding-right: 0;">
+      &copy; 2026. Vendor-neutral. Architecture-first. Built on TM Forum standards.
+    </footer>
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

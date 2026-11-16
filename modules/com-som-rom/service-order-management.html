@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.3 Service Order Management (SOM) &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.3: Service Order Management — Service order business objects, SOM state model, CFS decomposition, and lifecycle management."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content h4 { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(16,185,129,0.08); border-left: 4px solid #10b981; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #6ee7b7; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #6ee7b7; font-size: 1rem; border-bottom: none; padding-bottom: 0; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .code-inline {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid #1e293b;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.8125rem;
+    color: #e2e8f0;
+  }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 0.75rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-cfs { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rfs { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1rem; padding: 0.15rem 0; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.3 Service Order Management (SOM)</span>
+    </nav>
+
+    <h1>3.3 Service Order Management (SOM)</h1>
+    <p class="subtitle">Service Design, CFS/RFS Decomposition, and Lifecycle Orchestration</p>
+
+    <p>Service Order Management (SOM) is the middle layer of the three-layer order model. It bridges the gap between what the customer buys (captured in the commercial order) and what the network delivers (handled by resource orders). SOM operates on service specifications &mdash; Customer Facing Services (CFS) and Resource Facing Services (RFS) &mdash; as defined in the Service Catalog (TMF633). A service order is a request to create, modify, delete, or otherwise manage a set of service instances that together deliver the product the customer ordered.</p>
+
+    <p>SOM is often described as the "brain" of the order orchestration chain. It is responsible for service design, where the logical topology of the service is defined; for service decomposition, where each CFS is broken down into its constituent RFS and resource requirements; and for lifecycle management, where the state of each service instance is tracked from inception through activation to eventual decommissioning.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> The separation between CFS and RFS within SOM is critical. CFS represents the service as the customer experiences it &mdash; e.g., "Business MPLS VPN with 100Mbps CIR at 5 sites." RFS represents the service as the network implements it &mdash; e.g., "MPLS L3VPN VRF configuration with QoS policy H on all PE routers." This separation allows service designers to create technology-agnostic CFS definitions that can be mapped to multiple RFS implementations as network technology evolves.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Service Order Business Objects</h2>
+    <p>The TM Forum TMF641 Service Ordering API defines a set of business objects that form the core data model for SOM. Understanding these objects is essential for designing service order interfaces and orchestrating the service lifecycle.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Business Object</th>
+            <th>TMF641 Representation</th>
+            <th>Description</th>
+            <th>Key Attributes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Service Order</strong></td>
+            <td><span class="code-inline">ServiceOrder</span></td>
+            <td>The top-level order entity. Contains header information (order date, external ID, priority, requested completion date) and a list of service order items.</td>
+            <td>id, externalId, priority, state, orderDate, requestedCompletionDate, relatedParty</td>
+          </tr>
+          <tr>
+            <td><strong>Service Order Item</strong></td>
+            <td><span class="code-inline">ServiceOrderItem</span></td>
+            <td>A line item within the service order, specifying a single service action (add, modify, delete, etc.) for a specific service specification or existing service instance.</td>
+            <td>id, action, state, service, serviceSpecification, serviceRelationship</td>
+          </tr>
+          <tr>
+            <td><strong>Service Specification</strong></td>
+            <td><span class="code-inline">ServiceSpecificationRef</span></td>
+            <td>A reference to a service specification defined in the Service Catalog (TMF633). Determines the structure, characteristics, and allowed actions for the service.</td>
+            <td>id, name, version, href, type (CFS or RFS)</td>
+          </tr>
+          <tr>
+            <td><strong>Service Instance</strong></td>
+            <td><span class="code-inline">Service</span></td>
+            <td>The actual service instance being created, modified, or deleted. Contains the current state and characteristics of the service.</td>
+            <td>id, serviceState, serviceType, serviceCharacteristic, relatedService</td>
+          </tr>
+          <tr>
+            <td><strong>Service Characteristic</strong></td>
+            <td><span class="code-inline">ServiceCharacteristic</span></td>
+            <td>A key-value pair capturing a specific attribute of the service (e.g., bandwidth = "100Mbps", vlanId = "1200").</td>
+            <td>name, value (or valueType for complex values)</td>
+          </tr>
+          <tr>
+            <td><strong>Service Relationship</strong></td>
+            <td><span class="code-inline">ServiceRelationship</span></td>
+            <td>Defines how this service relates to other services. Relationship types include "reliesOn", "bundledIn", "covers", "connectsTo", and "dependsOn".</td>
+            <td>relationshipType, service (reference to related service)</td>
+          </tr>
+          <tr>
+            <td><strong>Order Item Relationship</strong></td>
+            <td><span class="code-inline">OrderItemRelationship</span></td>
+            <td>Defines dependencies between order items within the same service order (e.g., item B must be completed before item C can start).</td>
+            <td>relationshipType, orderItem (reference to related item)</td>
+          </tr>
+          <tr>
+            <td><strong>Resource Requirement</strong></td>
+            <td><span class="code-inline">ResourceRequirement</span> (embedded)</td>
+            <td>Specifies the resource requirements for the service order item. These will be fulfilled by the ROM layer through resource orders.</td>
+            <td>resourceSpecification, quantity, resourceCharacteristic, placeholderRef</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>SOM State Model</h2>
+    <p>The TMF641 standard defines a state machine for service orders and their items. The state model governs the lifecycle of each service order item and determines what actions are allowed at each stage. Understanding the state model is essential for designing robust orchestration workflows.</p>
+
+    <h3>Service Order States</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Description</th>
+            <th>Transitions To</th>
+            <th>Orchestration Significance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Submitted</strong></td>
+            <td>The service order has been received from the COM layer and accepted for processing.</td>
+            <td>In Progress, Rejected</td>
+            <td>SOM validates the order structure and the referenced service specifications.</td>
+          </tr>
+          <tr>
+            <td><strong>Rejected</strong></td>
+            <td>The service order failed validation. The request is returned to COM with error details.</td>
+            <td>Submitted (after correction)</td>
+            <td>Typically caused by invalid service specification references or missing mandatory characteristics.</td>
+          </tr>
+          <tr>
+            <td><strong>In Progress</strong></td>
+            <td>The service order is being processed. Service instances are being created or modified, and resource orders may have been dispatched.</td>
+            <td>Pending, Completed, Failed, Cancelled</td>
+            <td>Primary processing state. SOM executes service design and decomposition logic.</td>
+          </tr>
+          <tr>
+            <td><strong>Pending</strong></td>
+            <td>The order is awaiting an external event or manual intervention (e.g., site survey, third-party circuit delivery).</td>
+            <td>In Progress, Cancelled</td>
+            <td>Order is blocked. SOM may start timer-driven escalation workflows.</td>
+          </tr>
+          <tr>
+            <td><strong>Completed</strong></td>
+            <td>All service order items have been successfully fulfilled. Services are active in the SLM installed base.</td>
+            <td>Terminal state</td>
+            <td>SOM notifies COM of completion. Post-activation billing triggers may fire.</td>
+          </tr>
+          <tr>
+            <td><strong>Failed</strong></td>
+            <td>One or more items could not be fulfilled. Compensation has been executed at the service and resource levels.</td>
+            <td>Terminal state</td>
+            <td>SOM executes rollback on any partially completed items and notifies COM.</td>
+          </tr>
+          <tr>
+            <td><strong>Cancelled</strong></td>
+            <td>The order was terminated before completion. All in-progress work has been halted and compensated.</td>
+            <td>Terminal state</td>
+            <td>Cancellation may be initiated by COM or directly by a service operations agent.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Service Instance States (SLM Installed Base)</h3>
+    <p>In addition to the service order state, each service instance tracked in the SLM (Service Level Management) installed base has its own lifecycle state:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Description</th>
+            <th>Transition Trigger</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Feasibility</strong></td>
+            <td>The service has been designed but not yet committed. Capacity checks and pre-qualification are running.</td>
+            <td>Service design initiated</td>
+          </tr>
+          <tr>
+            <td><strong>Designed</strong></td>
+            <td>The service topology is designed and documented. Resource requirements are defined but not yet allocated.</td>
+            <td>Design completed</td>
+          </tr>
+          <tr>
+            <td><strong>Reserved</strong></td>
+            <td>Resources have been reserved for this service but not yet activated. The service exists as a reservation in inventory.</td>
+            <td>Resource reservation confirmed</td>
+          </tr>
+          <tr>
+            <td><strong>Active</strong></td>
+            <td>The service is fully operational. Resources are allocated and configured. The customer can use the service.</td>
+            <td>Activation completed</td>
+          </tr>
+          <tr>
+            <td><strong>Suspended</strong></td>
+            <td>The service is temporarily disabled while preserving configuration and resource assignments.</td>
+            <td>Suspension request from COM or operations</td>
+          </tr>
+          <tr>
+            <td><strong>Terminated</strong></td>
+            <td>The service has been decommissioned. Resources are released and the service record is archived.</td>
+            <td>Disconnection completed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Service Order Item Actions</h2>
+    <p>Each service order item includes an <span class="code-inline">action</span> attribute that determines what operation is to be performed on the referenced service specification or existing service instance. The TMF641 standard defines the following action types:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Description</th>
+            <th>Service Instance State Transition</th>
+            <th>Impact on Resource Layer</th>
+            <th>Compensation Behaviour</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>add</strong></td>
+            <td>Create a new service instance based on the referenced service specification.</td>
+            <td>None &rarr; Feasibility &rarr; Designed &rarr; Reserved &rarr; Active</td>
+            <td>Creates resource orders to allocate and activate resources.</td>
+            <td>If downstream fails, delete the service instance and release any reserved resources.</td>
+          </tr>
+          <tr>
+            <td><strong>modify</strong></td>
+            <td>Change characteristics of an existing service instance.</td>
+            <td>Active &rarr; (modify in progress) &rarr; Active</td>
+            <td>Creates resource orders to reconfigure affected resources.</td>
+            <td>Revert characteristic changes and roll back resource reconfigurations.</td>
+          </tr>
+          <tr>
+            <td><strong>delete</strong></td>
+            <td>Decommission an existing service instance and release its resources.</td>
+            <td>Active &rarr; Terminated</td>
+            <td>Creates resource orders to deactivate and release resources.</td>
+            <td>If deletion fails, re-activate the service and restore resources (rarely needed).</td>
+          </tr>
+          <tr>
+            <td><strong>suspend</strong></td>
+            <td>Temporarily disable a service while preserving its configuration and resource assignments.</td>
+            <td>Active &rarr; Suspended</td>
+            <td>Creates resource orders to apply access controls or administrative down.</td>
+            <td>Restore action reverts the suspension.</td>
+          </tr>
+          <tr>
+            <td><strong>restore</strong></td>
+            <td>Re-enable a previously suspended service, returning it to active operation.</td>
+            <td>Suspended &rarr; Active</td>
+            <td>Creates resource orders to remove suspension configurations.</td>
+            <td>If restore fails, re-apply suspension (fallback).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>CFS Decomposition: The Core of SOM Logic</h2>
+    <p>The most important function of the SOM layer is <strong>CFS decomposition</strong> &mdash; breaking down a Customer Facing Service into its constituent Resource Facing Services and their resource requirements. This is the middle step in the three-layer decomposition chain.</p>
+
+    <div class="diagram-box">
+      <div class="layer layer-cfs">CFS: Managed MPLS VPN &mdash; "Business VPN 100Mbps at Site A"</div>
+      <div class="arrow">&darr; SOM Decomposition</div>
+      <div class="layer" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7;padding:0.5rem;">RFS: MPLS Port (PE-facing)</div>
+      <div class="layer" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;padding:0.5rem;">RFS: MPLS VPN (L3VPN VRF)</div>
+      <div class="layer" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;padding:0.5rem;">RFS: QoS Policy Set</div>
+      <div class="layer" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;padding:0.5rem;">RFS: CPE Management (if managed router included)</div>
+      <div class="arrow">&darr; Each RFS generates resource requirements</div>
+    </div>
+
+    <h3>The Decomposition Process</h3>
+    <p>When a service order item with an <span class="code-inline">add</span> action is processed, the SOM engine executes the following decomposition workflow:</p>
+
+    <ol>
+      <li><strong>Retrieve the CFS specification</strong> from the Service Catalog (TMF633). The CFS specification defines the service structure, including its characteristics, relationships, and the RFS specifications that compose it.</li>
+      <li><strong>Validate the service order item characteristics</strong> against the CFS specification's required and optional attributes. For example, verify that mandatory characteristics like "Bandwidth" and "Service Address" are provided and conform to allowed values.</li>
+      <li><strong>Create the CFS instance</strong> in the service inventory (SLM) with state "Feasibility". The instance captures the CFS characteristics as provided by the order item.</li>
+      <li><strong>Decompose into RFS instances:</strong> For each RFS specification referenced by the CFS specification, create an RFS instance. Map the CFS characteristics to RFS characteristics as defined by the decomposition rules in the catalog.<br/>
+        Example mapping: CFS Bandwidth "100Mbps" &rarr; RFS Port Profile "100Mbps", RFS QoS Profile "Gold", RFS VPN Profile "Standard".</li>
+      <li><strong>Create resource requirements:</strong> For each RFS instance, determine the resource specifications (from the Resource Catalog TMF634) that are needed. Resource requirements may be concrete (specific device type, port type) or abstract (placeholder that will be resolved during resource allocation).</li>
+      <li><strong>Generate topology relationships:</strong> Define the service topology by establishing service relationships between the CFS and RFS instances, and between RFS instances where dependencies exist. For example, the MPLS VPN RFS "reliesOn" the MPLS Port RFS.</li>
+      <li><strong>Submit resource requirements to ROM:</strong> SOM creates a TMF652 Resource Order containing the resource requirements and submits it to the ROM layer for allocation and activation.</li>
+      <li><strong>Track state:</strong> SOM transitions the CFS instance state through Designed and Reserved as resource allocation progresses, and finally to Active when ROM reports successful activation.</li>
+    </ol>
+
+    <div class="highlight">
+      <p><strong>Design pattern:</strong> The decomposition rules that define how CFS maps to RFS, and how RFS maps to resource specifications, are stored in the Service Catalog (TMF633) and Resource Catalog (TMF634). This means that service designers can change the decomposition behaviour by updating catalog entries, without modifying the SOM orchestration engine code. This is the catalog-driven design principle applied at the service layer.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Service Topology and Relationships</h2>
+    <p>Modern telecom services are rarely standalone. They form complex topologies with multiple interconnected service instances across different domains. SOM is responsible for managing these relationships and ensuring that the topology is correctly represented in the service inventory.</p>
+
+    <h3>Common Service Relationship Types</h3>
+    <ul>
+      <li><strong>reliesOn:</strong> The source service depends on the target service being active before it can operate. For example, an MPLS VPN RFS "reliesOn" the MPLS Port RFS being active.</li>
+      <li><strong>connectsTo:</strong> The source service connects to the target service, typically over a network link. For example, a CFS "connectsTo" a network termination point.</li>
+      <li><strong>bundledIn:</strong> The source service is a component of a larger composite service. For example, a Managed Router CFS is "bundledIn" a Managed MPLS VPN service bundle.</li>
+      <li><strong>covers:</strong> The source CFS is covered by the target SLAs or service level specifications.</li>
+      <li><strong>dependsOn:</strong> A general dependency relationship, similar to reliesOn but with weaker semantics.</li>
+      <li><strong>connectsToNetwork:</strong> The service connects to a specific network resource or domain.</li>
+    </ul>
+
+    <h3>Service Topology Management</h3>
+    <p>SOM maintains a service topology graph that captures the relationships between all CFS and RFS instances for a given customer order. This topology is essential for:</p>
+    <ul>
+      <li><strong>Activation ordering:</strong> Determining which services must be activated before others (e.g., port must be active before VPN can be configured).</li>
+      <li><strong>Impact analysis:</strong> When a service fails or is scheduled for maintenance, determining which other services will be affected.</li>
+      <li><strong>Root cause analysis:</strong> When a customer reports a problem with their CFS, tracing through the topology to identify the failing RFS or resource.</li>
+      <li><strong>Change management:</strong> Understanding the blast radius of a proposed change to a service instance.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Lifecycle Management in SOM</h2>
+    <p>SOM is responsible for managing the complete lifecycle of service instances, from initial design through active operations to eventual termination. The service lifecycle is closely tied to the commercial order lifecycle but has its own distinct states and transitions.</p>
+
+    <h3>Service Order Modification</h3>
+    <p>When a customer requests a change to their service (e.g., upgrading from 100Mbps to 200Mbps), the COM layer creates a commercial order with a <span class="code-inline">modify</span> action. SOM receives a corresponding service order item and executes the following:</p>
+    <ol>
+      <li>Retrieve the existing CFS instance from the SLM installed base.</li>
+      <li>Validate the requested characteristic changes against the CFS specification.</li>
+      <li>Identify which RFS instances need to be modified (e.g., a speed upgrade affects the Port RFS and QoS RFS, but not the VPN RFS).</li>
+      <li>Create resource order items for the affected RFS, with the modified characteristics.</li>
+      <li>Track the modification through to completion, updating the CFS instance state.</li>
+    </ol>
+
+    <h3>Service Disconnection</h3>
+    <p>When a customer cancels a service, COM sends a <span class="code-inline">delete</span> action to SOM. The service disconnection process involves:</p>
+    <ol>
+      <li>Retrieve the CFS instance and all related RFS instances from SLM.</li>
+      <li>Determine the deactivation ordering: typically, higher-layer services are deactivated before lower-layer services (e.g., VPN before Port).</li>
+      <li>Create resource orders with <span class="code-inline">delete</span> actions for each RFS instance.</li>
+      <li>After ROM confirms deactivation, update the CFS and RFS instances to "Terminated" state in SLM.</li>
+      <li>Notify COM that the service has been decommissioned.</li>
+    </ol>
+
+    <!-- ============================================================ -->
+    <h2>SOM Integration Patterns</h2>
+    <p>SOM is the central integration hub between the commercial and network layers. Its integration landscape includes:</p>
+    <ul>
+      <li><strong>COM (Upstream):</strong> Receives TMF641 service orders from COM. Sends state change notifications back to COM.</li>
+      <li><strong>Service Catalog (Reference):</strong> Reads CFS and RFS specifications to drive decomposition logic.</li>
+      <li><strong>Resource Catalog (Reference):</strong> Reads resource specifications to determine resource requirements.</li>
+      <li><strong>SLM / Service Inventory (Sink):</strong> Writes service instance data to the SLM installed base (TMF638).</li>
+      <li><strong>ROM (Downstream):</strong> Submits TMF652 resource orders to ROM for resource allocation and activation.</li>
+      <li><strong>Domain Orchestrators (Downstream, via ROM):</strong> In architectures where SOM directly interacts with domain orchestrators (e.g., SDN controllers), SOM may bypass ROM for certain operations.</li>
+      <li><strong>Assurance Systems (Reference):</strong> Service topology and state data from SOM feeds service assurance and monitoring systems.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>SOM is the middle layer</strong> in the three-layer order model, responsible for translating commercial requests into service designs and resource requirements.</li>
+        <li><strong>Customer Facing Services (CFS)</strong> represent the service as the customer experiences it; <strong>Resource Facing Services (RFS)</strong> represent the service as the network implements it.</li>
+        <li><strong>TMF641 Service Ordering API</strong> defines the standard interface for SOM, including service order business objects, state machines, and notification events.</li>
+        <li><strong>CFS decomposition</strong> is the core SOM function, breaking CFS into RFS instances and generating resource requirements that are passed to the ROM layer.</li>
+        <li>The <strong>service instance lifecycle</strong> spans Feasibility, Designed, Reserved, Active, Suspended, and Terminated states, managed within the SLM installed base.</li>
+        <li><strong>Service topology</strong> and relationship management enable activation ordering, impact analysis, root cause tracing, and change management.</li>
+        <li><strong>Decomposition rules</strong> are stored in the Service and Resource Catalogs, enabling service designers to change behaviour without modifying orchestration logic.</li>
+        <li><strong>Compensation</strong> in SOM must handle partial failures by rolling back service instances and releasing resources in coordination with ROM.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links --><div class="section-nav">
+  <a href="commercial-order-management.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.2 Commercial Order Management (COM)</span>
+  </a><a href="resource-order-management.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.4 Resource Order Management (ROM)</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

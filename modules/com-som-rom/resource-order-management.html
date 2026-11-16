@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.4 Resource Order Management (ROM) &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.4: Resource Order Management — Resource order decomposition, RFS-to-resource mapping, activation sequences, and rollback patterns."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(245,158,11,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(245,158,11,0.12); color: #fcd34d; border-left-color: #f59e0b; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content h4 { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(245,158,11,0.08); border-left: 4px solid #f59e0b; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #fcd34d; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #fcd34d; font-size: 1rem; border-bottom: none; padding-bottom: 0; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .code-inline {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid #1e293b;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.8125rem;
+    color: #e2e8f0;
+  }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .flow-h { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+  .diagram-box .step {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600; font-size: 0.8125rem;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    color: #fcd34d;
+  }
+  .diagram-box .arr { color: #475569; font-size: 1rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.4 Resource Order Management (ROM)</span>
+    </nav>
+
+    <h1>3.4 Resource Order Management (ROM)</h1>
+    <p class="subtitle">Resource Allocation, Activation, and Inventory Management</p>
+
+    <p>Resource Order Management (ROM) is the bottom layer of the three-layer order model. It is responsible for allocating, configuring, activating, and decommissioning the physical and logical network resources that deliver telecom services. ROM sits at the boundary between the OSS service layer and the network infrastructure &mdash; translating abstract resource requirements from SOM into concrete activation commands that domain controllers and network element managers execute.</p>
+
+    <p>Unlike COM and SOM, which operate primarily on logical entities (product offerings, service specifications), ROM deals directly with the network: routers, switches, firewalls, optical transport equipment, base stations, virtual network functions (VNFs), and the configuration commands that control them. ROM must handle the complexity of multi-vendor, multi-technology, and multi-domain network environments while abstracting this complexity from the layers above.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> ROM is the layer where the "rubber hits the road" in telecom fulfilment. A commercial order can be perfectly captured (COM), a service can be beautifully designed (SOM), but neither matters if the resource layer cannot reliably activate the configuration on the network. The quality of a telco's ROM implementation directly determines order success rates, activation times, and operational efficiency.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Resource Order Decomposition</h2>
+    <p>When SOM submits a resource order to ROM, it contains a set of <strong>resource requirements</strong> that describe what network resources are needed to deliver each RFS instance. ROM's first task is to decompose these requirements into actionable resource order items.</p>
+
+    <h3>The Decomposition Flow</h3>
+    <div class="diagram-box">
+      <div class="flow-h">
+        <span class="step">RFS Requirement</span>
+        <span class="arr">&rarr;</span>
+        <span class="step">Resource Spec Lookup</span>
+        <span class="arr">&rarr;</span>
+        <span class="step">Resource Candidate Resolution</span>
+        <span class="arr">&rarr;</span>
+        <span class="step">Create Resource Order Items</span>
+        <span class="arr">&rarr;</span>
+        <span class="step">Dispatch to Domain Controller</span>
+      </div>
+    </div>
+
+    <ol>
+      <li><strong>Receive resource requirements:</strong> ROM receives a TMF652 Resource Order from SOM. Each service order item in SOM may generate multiple resource requirements that are packed into a single resource order.</li>
+      <li><strong>Resource specification lookup:</strong> For each resource requirement, ROM retrieves the corresponding Resource Specification from the Resource Catalog (TMF634). The specification defines the resource type, allowed characteristics, configuration templates, and activation protocols.</li>
+      <li><strong>Resource candidate resolution:</strong> ROM searches the Resource Inventory (TMF639) for available resource candidates that match the specification requirements. For example, a requirement for "10G Ethernet Port at Site A" might resolve to specific port "PE01-Gig0/0/1" on a provider edge router. This step may involve:<ul>
+        <li>Checking physical inventory for available ports and capacity.</li>
+        <li>Reserving IP addresses, VLAN IDs, MPLS labels, or other logical resource pools.</li>
+        <li>Validating that the candidate resource supports the required characteristics (e.g., QoS profiles, encapsulation types).</li>
+      </ul></li>
+      <li><strong>Create resource order items:</strong> ROM creates order items for each resource to be allocated or configured. Each item specifies the resource action (add, modify, delete), the target resource instance (or a placeholder for new resources), and the configuration characteristics.</li>
+      <li><strong>Dispatch to domain controller:</strong> ROM dispatches the configuration commands to the appropriate domain controller or network element manager using the protocol specified in the resource specification (NETCONF, RESTCONF, SNMP, CLI, vendor API, etc.).</li>
+    </ol>
+
+    <!-- ============================================================ -->
+    <h2>RFS to Resource Mapping</h2>
+    <p>A single RFS instance typically decomposes into multiple discrete resource actions across different network domains. The following table illustrates how a typical MPLS VPN RFS maps to underlying resources:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>RFS Component</th>
+            <th>Resource Specification</th>
+            <th>Resource Action</th>
+            <th>Target Domain</th>
+            <th>Configuration Template</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MPLS Port RFS</td>
+            <td>Ethernet Port (10GBase-LR)</td>
+            <td>Provision port on PE router</td>
+            <td>IP/MPLS Core</td>
+            <td>Set MTU 9216, enable LLDP, set admin up</td>
+          </tr>
+          <tr>
+            <td>MPLS VPN RFS</td>
+            <td>L3VPN VRF Instance</td>
+            <td>Create VRF with route targets</td>
+            <td>IP/MPLS Core</td>
+            <td>VRF "CUST-A", RD 65000:100, RT import/export 65000:100</td>
+          </tr>
+          <tr>
+            <td>MPLS VPN RFS</td>
+            <td>BGP Peering (PE-CE)</td>
+            <td>Configure BGP session</td>
+            <td>IP/MPLS Core</td>
+            <td>Neighbor 10.0.0.1 remote-as 65001, activate in VRF</td>
+          </tr>
+          <tr>
+            <td>QoS Policy RFS</td>
+            <td>QoS Policy Profile</td>
+            <td>Apply QoS policy to port</td>
+            <td>IP/MPLS Core</td>
+            <td>Policy "GOLD" &mdash; priority 4, CIR 100Mbps, PIR 150Mbps</td>
+          </tr>
+          <tr>
+            <td>Access Circuit RFS</td>
+            <td>Last-mile Access (Fibre)</td>
+            <td>Provision ONT at customer premises</td>
+            <td>Access / FTTx</td>
+            <td>ONT serial "ABC123", GPON port 2/1/4, VLAN 100</td>
+          </tr>
+          <tr>
+            <td>CPE Management RFS</td>
+            <td>Managed CPE (Router)</td>
+            <td>Provision CPE with zero-touch config</td>
+            <td>CPE / Premises</td>
+            <td>Config template "Business-Router-v2", IPoE WAN, LAN subnet 192.168.1.0/24</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>The Activation Sequence</h2>
+    <p>Activation &mdash; the process of pushing configuration changes to network devices &mdash; must follow a strict ordering to avoid service disruption and configuration errors. ROM is responsible for orchestrating this sequence based on dependencies between resource order items and the requirements of each domain.</p>
+
+    <h3>Typical Activation Ordering for an MPLS VPN Service</h3>
+    <ol>
+      <li><strong>Physical layer:</strong> Ensure physical connectivity is established. Provision access circuit, verify optical signal, enable ports.</li>
+      <li><strong>Transport layer:</strong> Configure transport-level parameters. Set MTU, enable VLAN tagging, configure encapsulation.</li>
+      <li><strong>IP layer:</strong> Assign IP addressing. Configure interface IP addresses, loopback addresses, and routing adjacencies.</li>
+      <li><strong>MPLS / VPN layer:</strong> Configure MPLS labels, LDP or RSVP-TE signalling, and VRF instances with route targets.</li>
+      <li><strong>QoS layer:</strong> Apply service-level traffic policies. Configure shaping, policing, marking, and queuing.</li>
+      <li><strong>Service activation:</strong> Enable the service. Activate BGP sessions, verify routing table population, and perform end-to-end connectivity tests.</li>
+      <li><strong>CPE (if managed):</strong> Configure customer premises equipment. Deploy zero-touch configuration, verify WAN connectivity, and test customer LAN ports.</li>
+    </ol>
+
+    <p>This ordering is enforced by the <strong>activation sequence engine</strong> within ROM, which maintains a directed acyclic graph (DAG) of resource order item dependencies. An item cannot begin activation until all of its prerequisite items have completed successfully.</p>
+
+    <h3>Activation Protocols and Interfaces</h3>
+    <p>ROM communicates with domain controllers and network elements through a variety of protocols, depending on the network technology and vendor:</p>
+    <ul>
+      <li><strong>NETCONF / YANG:</strong> IETF standard for configuration management. Used with modern routers, switches, and optical equipment. NETCONF provides transactional, rollback-capable configuration operations.</li>
+      <li><strong>RESTCONF:</strong> RESTful adaptation of NETCONF, using HTTP and JSON/XML. Commonly used with cloud-native network functions.</li>
+      <li><strong>SNMP:</strong> Legacy protocol for configuration and monitoring. Still widely used for read operations and basic set operations on older equipment.</li>
+      <li><strong>CLI / SSH:</strong> Direct command-line interface. Used where structured protocols are not available, often abstracted by device driver adapters.</li>
+      <li><strong>gRPC / gNMI:</strong> Google RPC-based interface for streaming telemetry and configuration. Increasingly adopted in SDN and cloud-native networking.</li>
+      <li><strong>Vendor-specific APIs:</strong> Cisco NSO, Juniper Contrail, Nokia Nuage, Huawei NCE, and other vendor orchestrators provide their own northbound interfaces.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Rollback and Compensation Patterns</h2>
+    <p>One of ROM's most critical responsibilities is handling failures during activation. When a resource order item fails, ROM must execute a <strong>rollback</strong> to undo any partially completed work and restore the network to a consistent state. Unlike COM and SOM (which operate on logical records), ROM rollbacks involve changing real network configuration, which carries operational risk.</p>
+
+    <h3>Rollback Strategies</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Description</th>
+            <th>When to Use</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Transactional (NETCONF)</strong></td>
+            <td>All configuration changes for an order item are bundled into a single NETCONF transaction. If any change fails, the entire transaction is rolled back atomically.</td>
+            <td>Available when domain controllers support NETCONF/YANG with confirmed-commit.</td>
+            <td>Low &mdash; transaction boundaries are managed by the protocol.</td>
+          </tr>
+          <tr>
+            <td><strong>Reverse-order compensation</strong></td>
+            <td>ROM maintains a journal of every configuration change applied. If a failure occurs, the journal is traversed in reverse order, applying the inverse of each change.</td>
+            <td>When transactional support is unavailable or when rollback spans multiple devices/domains.</td>
+            <td>Medium &mdash; inverse operations must be correctly defined and may themselves fail.</td>
+          </tr>
+          <tr>
+            <td><strong>Configuration snapshot / restore</strong></td>
+            <td>Before making changes, ROM captures the current device configuration (or a relevant subset). On failure, the saved configuration is restored.</td>
+            <td>When changes affect a well-defined portion of device configuration and the device supports configuration replace.</td>
+            <td>Medium &mdash; restore may conflict with concurrent changes from other orders.</td>
+          </tr>
+          <tr>
+            <td><strong>Manual compensation</strong></td>
+            <td>ROM marks the failed order item and alerts operations staff to manually resolve the issue and clean up partial configuration.</td>
+            <td>When automated rollback is too risky (e.g., partial multi-device changes with complex dependencies).</td>
+            <td>High &mdash; human error, slow resolution, operational overhead.</td>
+          </tr>
+          <tr>
+            <td><strong>Orchestrated multi-domain rollback</strong></td>
+            <td>For resource orders spanning multiple domain controllers, ROM coordinates a phased rollback across all affected domains, ensuring consistency at each step.</td>
+            <td>For complex orders involving access, aggregation, core, and CPE domains.</td>
+            <td>Medium &mdash; requires careful coordination and timeout management.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Compensation Journal Example</h3>
+    <p>The following table illustrates a compensation journal for a failed resource order item. Each forward action has a corresponding inverse action that would be executed during rollback:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Sequence</th>
+            <th>Forward Action</th>
+            <th>Target</th>
+            <th>Status</th>
+            <th>Compensation Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Set interface MTU 9216</td>
+            <td>PE01-Gig0/0/1</td>
+            <td>Completed</td>
+            <td>Restore MTU to default (1500)</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Create VRF CUST-A</td>
+            <td>PE01</td>
+            <td>Completed</td>
+            <td>Delete VRF CUST-A</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Assign IP 10.0.0.1/30 to interface</td>
+            <td>PE01-Gig0/0/1</td>
+            <td>Completed</td>
+            <td>Remove IP address from interface</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Configure BGP neighbor 10.0.0.2</td>
+            <td>PE01</td>
+            <td>Completed</td>
+            <td>Remove BGP neighbor configuration</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Apply QoS policy "GOLD" to interface</td>
+            <td>PE01-Gig0/0/1</td>
+            <td><strong>Failed</strong></td>
+            <td>Rollback steps 4, 3, 2, 1 (reverse order)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight">
+      <p><strong>Design pattern:</strong> The <strong>Compensation Journal</strong> (also called the "Undo Log" or "Change Log") is a critical component of any production ROM system. Every configuration change MUST be recorded with enough detail to compute its inverse. The journal is typically stored in a database that is separate from the network device configurations, providing a durable record of all activation activity for audit, compliance, and troubleshooting purposes.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Resource State Management</h2>
+    <p>ROM maintains the state of each resource order and resource order item through a lifecycle that parallels COM and SOM but includes additional states specific to network activation.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Description</th>
+            <th>Network Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Submitted</strong></td>
+            <td>The resource order has been received from SOM and accepted for processing.</td>
+            <td>No changes made to network.</td>
+          </tr>
+          <tr>
+            <td><strong>Assessing Resources</strong></td>
+            <td>ROM is checking resource availability and reserving candidates from inventory.</td>
+            <td>Resource pool reservations made, no device configuration.</td>
+          </tr>
+          <tr>
+            <td><strong>Allocated</strong></td>
+            <td>Resources have been selected and reserved. Resource instances created in inventory.</td>
+            <td>Resource instances recorded but not yet configured on devices.</td>
+          </tr>
+          <tr>
+            <td><strong>Configuring</strong></td>
+            <td>Configuration commands are being pushed to domain controllers or network elements.</td>
+            <td>Device configuration in progress. Some devices may be partially configured.</td>
+          </tr>
+          <tr>
+            <td><strong>Active</strong></td>
+            <td>All configuration changes have been successfully applied and verified.</td>
+            <td>Network configured and operational.</td>
+          </tr>
+          <tr>
+            <td><strong>Pending Activation</strong></td>
+            <td>Resources are allocated and configured but not yet service-affecting (e.g., ports admin-down awaiting scheduled cutover).</td>
+            <td>Configured but not enabled. Customer not yet impacted.</td>
+          </tr>
+          <tr>
+            <td><strong>Failed</strong></td>
+            <td>One or more configuration actions failed. Rollback has been executed.</td>
+            <td>Partially configured state has been cleaned up and rolled back.</td>
+          </tr>
+          <tr>
+            <td><strong>Cancelled</strong></td>
+            <td>The resource order was cancelled before completion. Any allocated resources have been released.</td>
+            <td>All changes rolled back. Inventory updated.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Resource Inventory Synchronization</h2>
+    <p>A critical function of ROM is keeping the Resource Inventory (TMF639) synchronised with the actual state of the network. This is known as <strong>inventory reconciliation</strong> and is essential for ensuring that future resource assignments are based on accurate data.</p>
+
+    <h3>Synchronization Mechanisms</h3>
+    <ul>
+      <li><strong>Transactional updates:</strong> When ROM successfully completes a configuration change, it immediately updates the Resource Inventory to reflect the new state. For example, setting a port MTU from 1500 to 9216 updates the port resource instance in inventory.</li>
+      <li><strong>Configuration drift detection:</strong> Periodic or event-driven reconciliation jobs compare the Resource Inventory against the actual device configuration. Discrepancies (drift) are flagged for investigation.</li>
+      <li><strong>Network discovery:</strong> ROM or associated discovery tools periodically scan the network to detect new devices, interfaces, and connections, updating the inventory accordingly.</li>
+      <li><strong>Resource pool management:</strong> Logical resource pools (IP addresses, VLAN IDs, MPLS labels) are managed through a reservation and release mechanism. ROM reserves resources before activation and releases them back to the pool on deactivation or rollback.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>ROM Integration Patterns</h2>
+    <p>ROM sits at the bottom of the order management stack and integrates with both northbound (SOM) and southbound (network) systems:</p>
+    <ul>
+      <li><strong>SOM (Upstream):</strong> Receives TMF652 resource orders from SOM. Sends state change notifications back to SOM.</li>
+      <li><strong>Resource Catalog (Reference):</strong> Reads resource specifications (TMF634) to determine resource characteristics, configuration templates, and activation protocols.</li>
+      <li><strong>Resource Inventory (Sink):</strong> Writes resource instance data to the Resource Inventory (TMF639). Reads inventory for resource candidate selection.</li>
+      <li><strong>Domain Controllers (Southbound):</strong> Translates resource order items into domain-specific configuration commands. Examples: SDN controllers (ONAP, Cisco NSO), NFV orchestrators (OpenStack MANO), EMS/NMS systems.</li>
+      <li><strong>Network Elements (Southbound, via Domain Controller):</strong> The actual routers, switches, firewalls, base stations, and optical equipment that receive configuration commands.</li>
+      <li><strong>Activation Monitoring (Internal):</strong> ROM monitors the progress and success of configuration changes, collecting response times, error messages, and device logs.</li>
+      <li><strong>Assurance Systems (Reference):</strong> Resource state changes from ROM are published to service assurance systems for monitoring and alerting.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Performance and Scalability Considerations</h2>
+    <p>ROM is typically the most performance-sensitive layer in the order management stack. Activation delays directly impact customer experience and order-to-cash cycle times. Key architectural considerations include:</p>
+    <ul>
+      <li><strong>Concurrent activation capacity:</strong> ROM must be able to handle hundreds or thousands of simultaneous activation requests across multiple domains without contention.</li>
+      <li><strong>Idempotency:</strong> Configuration commands should be idempotent &mdash; applying the same command multiple times should produce the same result. This is essential for retry handling.</li>
+      <li><strong>Timeout management:</strong> Network activation operations can be slow (seconds to minutes). ROM must implement robust timeout, retry, and escalation mechanisms.</li>
+      <li><strong>Device locking:</strong> To prevent concurrent conflicting changes to the same device, ROM typically implements device-level locking or uses transactional configuration protocols.</li>
+      <li><strong>Asynchronous execution:</strong> ROM operations are inherently asynchronous. The ROM engine dispatches activation commands and then polls or waits for completion notifications rather than blocking on a synchronous response.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>ROM is the bottom layer</strong> of the three-layer order model, responsible for allocating, configuring, and activating network resources based on requirements from SOM.</li>
+        <li><strong>Resource order decomposition</strong> translates RFS requirements into concrete resource order items, resolving abstract requirements against the Resource Catalog and Resource Inventory.</li>
+        <li><strong>Activation sequencing</strong> is critical &mdash; resources must be configured in the correct order (physical &rarr; transport &rarr; IP &rarr; MPLS &rarr; QoS &rarr; service) to ensure successful service delivery.</li>
+        <li><strong>Rollback and compensation</strong> in ROM is more complex than in COM or SOM because it involves reverting real network configuration changes. Transactional protocols (NETCONF) and compensation journals are essential patterns.</li>
+        <li><strong>Resource inventory synchronisation</strong> ensures that the inventory database accurately reflects the actual network state, enabling reliable resource assignment for future orders.</li>
+        <li><strong>TMF652 Resource Ordering API</strong> provides the standardised interface for ROM, defining resource order states, actions, and notification patterns.</li>
+        <li><strong>Scalability and performance</strong> are critical ROM concerns &mdash; the system must handle high concurrency, implement idempotent operations, manage timeouts, and prevent conflicting device changes through locking.</li>
+        <li><strong>Protocol diversity</strong> is a key challenge: ROM must support NETCONF, RESTCONF, SNMP, CLI, gNMI, and vendor-specific APIs across different domains and device types.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links --><div class="section-nav">
+  <a href="service-order-management.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.3 Service Order Management (SOM)</span>
+  </a><a href="orchestration-domains.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.5 Orchestration Domains</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

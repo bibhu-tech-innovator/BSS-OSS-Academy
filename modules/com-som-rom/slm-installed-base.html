@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.6 SLM Installed Base &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.6: SLM Installed Base — Why SLM is the single runtime truth of what each customer has, bridging COM, SOM, and billing."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">â˜°</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.6 SLM Installed Base</span>
+    </nav>
+
+    <h1>3.6 SLM Installed Base</h1>
+    <p class="subtitle">Why SLM is the Single Runtime Truth</p>
+
+    <!-- ============================================================ -->
+    <h2>The Installed Base Problem</h2>
+    <p>Every telecom operator maintains a record of what services each customer has active at any point in time. This record is called the <strong>installed base</strong>, and it is arguably the most critical data asset in the BSS/OSS landscape after the customer record itself. The installed base drives billing, assurance, service operations, customer management, regulatory compliance, and strategic planning.</p>
+    <p>Yet in many operators, the installed base is fragmented across multiple systems. The billing system has its own view of provisioned products. The service inventory has a technical view of configured services. The network inventory has a resource-level view of activated ports and circuits. The CRM maintains a product subscription list. These views frequently drift out of sync, leading to billing errors, assurance blind spots, and manual reconciliation overhead.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> SLM (Service Level Management) does not refer to service-level agreements in this context. In the TM Forum ODA framework, SLM stands for the <strong>Service Inventory</strong> function — the authoritative runtime record of active service instances (CFS and RFS) that constitutes the true installed base. It is the system of record for &ldquo;what does this customer actually have right now?&rdquo;</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Why Product Inventory Is Not Enough</h2>
+    <p>Many operators mistakenly treat the Product Inventory (the record of product subscriptions maintained by the CRM or billing system) as the authoritative installed base. This creates several problems:</p>
+    <ul>
+      <li><strong>Product inventory records commercial intent, not technical reality.</strong> A product subscription may exist in the billing system even though the underlying service was never successfully activated, or was subsequently disconnected without updating the billing record.</li>
+      <li><strong>Product inventory is too coarse-grained.</strong> A single product (e.g., &ldquo;Business MPLS VPN 100Mbps&rdquo;) may encompass multiple service instances (CFS and RFS) spread across different technology domains. Product inventory cannot represent the detailed service topology, configuration characteristics, or domain-specific resource assignments.</li>
+      <li><strong>Product inventory does not capture service lifecycle.</strong> A service may be in a pending, active, suspended, or degraded state. Product inventory typically only knows about active or cancelled subscriptions, missing the intermediate and operational states that are critical for service assurance and operations.</li>
+      <li><strong>Product inventory lacks the granularity for domain handoffs.</strong> When SOM decomposes a service order, it needs to know which specific RFS instances exist, what their current state is, and which domain controller manages them. This level of detail is only available in the Service Inventory.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>SLM vs Product Inventory: A Comparison</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Product Inventory</th>
+            <th>SLM / Service Inventory (TMF638)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>System of record for</td>
+            <td>Commercial product subscriptions — what products a customer has purchased and is billed for.</td>
+            <td>Active service instances — what services are actually delivered and operational on the network.</td>
+          </tr>
+          <tr>
+            <td>Granularity</td>
+            <td>Product offering / product instance level. Coarse-grained commercial packaging.</td>
+            <td>CFS and RFS instance level. Fine-grained service topology with characteristics and relationships.</td>
+          </tr>
+          <tr>
+            <td>Lifecycle states</td>
+            <td>Active, suspended, cancelled (typically 3&ndash;4 states). Commercial billing lifecycle.</td>
+            <td>Active, inactive, pending, suspended, degraded, terminated (10+ states). Full service operations lifecycle.</td>
+          </tr>
+          <tr>
+            <td>Characteristic detail</td>
+            <td>Pricing-related characteristics (e.g., plan name, price, discount). Limited technical attributes.</td>
+            <td>Full technical characteristics (e.g., bandwidth, QoS profile, IP addresses, VLAN IDs, domain assignments).</td>
+          </tr>
+          <tr>
+            <td>Relationship modelling</td>
+            <td>Flat subscription list with basic product-to-customer association.</td>
+            <td>Rich service topology — CFS-to-RFS decomposition, cross-service dependencies, parent-child relationships.</td>
+          </tr>
+          <tr>
+            <td>Integration with SOM</td>
+            <td>Consumed by COM for order capture and validation. SOM does not read Product Inventory for service state.</td>
+            <td>Consumed by SOM as the authoritative runtime state. SOM reads SLM to determine current service configuration before issuing change or disconnect orders.</td>
+          </tr>
+          <tr>
+            <td>Integration with Assurance</td>
+            <td>Not typically integrated. Assurance tools have no access to product subscription data.</td>
+            <td>Primary input for service assurance — correlating alarm events, performance metrics, and topology to specific service instances.</td>
+          </tr>
+          <tr>
+            <td>Integration with Billing</td>
+            <td>Primary billing input — determines what to charge the customer each cycle.</td>
+            <td>Billing reconciliation — SLA penalty calculations, usage-based billing for variable service characteristics.</td>
+          </tr>
+          <tr>
+            <td>Integration with Planning</td>
+            <td>Limited — aggregate subscription counts for demand forecasting.</td>
+            <td>Detailed capacity planning — service distribution, resource utilisation trends, domain capacity exhaustion analysis.</td>
+          </tr>
+          <tr>
+            <td>Update mechanism</td>
+            <td>Updated by CRM / COM upon commercial order completion. May not reflect failed or partially fulfilled orders.</td>
+            <td>Updated by SOM upon successful service activation, modification, or deactivation. Each update is transactional and audited.</td>
+          </tr>
+          <tr>
+            <td>Regulatory / Audit</td>
+            <td>Limited — commercial audit trail for billing.</td>
+            <td>Complete service audit trail — every state transition, characteristic change, and domain interaction is recorded with timestamp and actor.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>How SLM Bridges COM, SOM, and Billing</h2>
+    <p>SLM occupies a central position in the BSS/OSS architecture, acting as the bridge between commercial systems (COM and CRM), service operations (SOM), and downstream systems such as billing and assurance:</p>
+    <ul>
+      <li><strong>COM &rarr; SLM:</strong> When a commercial order is fulfilled, COM notifies SLM that the product subscription is now active. However, COM does not write service characteristics to SLM. Instead, SOM writes the detailed service instance data after successful activation. SLM thus provides a feedback loop to COM: a product subscription is only marked as &ldquo;active&rdquo; in the commercial view when the corresponding service instances exist in SLM.</li>
+      <li><strong>SOM &rarr; SLM:</strong> SOM is the primary writer to SLM. When SOM successfully activates a service (all resource orders completed, all domain configurations applied), it creates or updates the CFS and RFS instances in SLM. SOM also reads SLM before issuing change or disconnect orders to determine the current service configuration and state.</li>
+      <li><strong>SLM &rarr; Billing:</strong> Billing systems consume SLM data to validate that billed services are actually active, to calculate SLA-based penalties or credits, and to support usage-based billing for variable service characteristics. SLM provides the technical evidence that a service was delivered and is operating at the agreed quality level.</li>
+      <li><strong>SLM &rarr; Assurance:</strong> Assurance systems use SLM as the service topology reference. When an alarm is raised on a network element, the assurance system queries SLM to determine which services are impacted, who the affected customers are, and what SLA commitments apply.</li>
+      <li><strong>SLM &rarr; Planning:</strong> Capacity planners use SLM data to understand service distribution across the network, identify resource utilisation trends, and predict when domain capacity will be exhausted.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>What Breaks When SLM Is Missing or Misused</h2>
+    <p>Operators that lack a proper SLM implementation or misuse their product inventory as a substitute experience a range of operational problems:</p>
+
+    <h3>Billing Errors and Revenue Leakage</h3>
+    <p>Without SLM, billing systems have no reliable way to verify that a billed service is actually active. Services may be billed after failed activations, or may continue to be billed after disconnection. Conversely, services that were successfully activated but never recorded in the billing system result in revenue leakage. Reconciliation becomes a manual, periodic exercise that is expensive and error-prone.</p>
+
+    <h3>Service Assurance Blind Spots</h3>
+    <p>When an alarm is raised on a network element, the assurance system needs to know which services are affected. Without SLM, this correlation is impossible at the service level. Operators must resort to manual investigation, service desk tickets, and customer-reported faults. Mean time to repair (MTTR) increases dramatically, and customer satisfaction suffers.</p>
+
+    <h3>Order Management Failures</h3>
+    <p>SOM cannot reliably process change or disconnect orders without reading the current service state from SLM. If SOM relies on its own internal state or on product inventory, it risks sending incorrect or conflicting instructions to domain controllers. For example, a change order that attempts to modify a non-existent RFS may succeed in the domain controller but leave the service in an inconsistent state. A disconnect order may attempt to release resources that were already freed by a previous failed activation.</p>
+
+    <h3>Regulatory Non-Compliance</h3>
+    <p>Telecom regulators in many jurisdictions require operators to maintain accurate records of active services for lawful intercept, emergency services routing, and number portability. Without SLM, operators cannot provide a reliable audit trail of service changes. In the event of a regulatory audit, the operator may face fines or sanctions for failing to demonstrate accurate service records.</p>
+
+    <h3>Operational Inefficiency</h3>
+    <p>Without a single source of truth for the installed base, operators rely on spreadsheets, manual reconciliation, and tribal knowledge to understand what services are active. Service operations teams spend significant time investigating discrepancies between systems, resolving billing disputes, and manually updating records. Automation initiatives stall because there is no reliable data foundation to build upon.</p>
+
+    <!-- ============================================================ -->
+    <h2>SLM Data Model and Key Entities</h2>
+    <p>The TM Forum TMF638 Service Inventory API defines the data model for SLM. The key entities are:</p>
+    <ul>
+      <li><strong>Service Instance:</strong> An individual occurrence of a service that has been activated for a specific customer. Each service instance has a unique identifier, a reference to its service specification (from TMF633), a lifecycle state, and a set of characteristics that capture the specific configuration values for that instance.</li>
+      <li><strong>Customer Facing Service (CFS):</strong> A service instance that is visible to the customer. The CFS represents what the customer ordered and what is defined in the product offering. A CFS has characteristics that the customer can see and, in some cases, modify (e.g., speed tier, static IP address).</li>
+      <li><strong>Resource Facing Service (RFS):</strong> A service instance that represents a technology-specific realisation of a CFS. The RFS is not visible to the customer but is referenced by domain controllers for activation. An RFS has characteristics mapped from the CFS plus additional technical parameters needed for network configuration.</li>
+      <li><strong>Service Relationship:</strong> A directed association between service instances. Common relationship types include &ldquo;composed of&rdquo; (a CFS is composed of one or more RFS instances), &ldquo;depends on&rdquo; (one service depends on another), and &ldquo;uses&rdquo; (a service uses a resource).</li>
+      <li><strong>Service Characteristic:</strong> A key-value pair that captures a specific attribute of a service instance. Characteristics are typed according to the service specification definition and may have constraints on allowed values.</li>
+      <li><strong>Related Party:</strong> A reference to a customer, partner, or other entity that has a role in the service. For example, a service instance may be associated with a customer (role: &ldquo;user&rdquo;) and a partner (role: &ldquo;provider&rdquo;).</li>
+      <li><strong>Place:</strong> A geographic or logical location associated with a service instance. For example, a broadband service instance has a place representing the service address.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>SLM Lifecycle States</h2>
+    <p>SLM service instances follow a well-defined lifecycle state model that aligns with the TM Forum ODA standard. The primary states are:</p>
+    <ul>
+      <li><strong>Inactive:</strong> The service specification is known to SLM but the service has not yet been activated. This is the initial state after a service order is submitted but before the first activation request is dispatched.</li>
+      <li><strong>Active:</strong> The service is fully operational and delivering the agreed functionality to the customer. All underlying resource configurations are in place and verified.</li>
+      <li><strong>Pending:</strong> The service activation or modification is in progress. Some resources may already be configured while others are still being provisioned. The service is not yet fully operational.</li>
+      <li><strong>Suspended:</strong> The service has been temporarily disabled, typically due to non-payment, customer request, or maintenance. The underlying resource configuration may still exist but is administratively blocked.</li>
+      <li><strong>Degraded:</strong> The service is operational but operating at a reduced capacity, quality, or availability level. This state is typically set by the assurance system when a fault or performance degradation is detected.</li>
+      <li><strong>Terminated:</strong> The service has been permanently decommissioned. All underlying resources have been released and the service instance is retained for audit purposes only.</li>
+    </ul>
+    <p>SLM maintains a complete history of state transitions, including the timestamp, the actor (system or user) that triggered the transition, and the reason code. This audit trail is essential for regulatory compliance, dispute resolution, and service improvement analysis.</p>
+
+    <!-- ============================================================ -->
+    <h2>SLM Implementation Best Practices</h2>
+    <p>Building an effective SLM implementation requires careful attention to several design principles:</p>
+    <ul>
+      <li><strong>SLM must be the single writer of the runtime service record.</strong> No system other than SOM should directly create, update, or delete service instances in SLM. This ensures that the service inventory is always consistent with the order management process. Domain controllers should not write directly to SLM; they report to ROM/SOM, which updates SLM after verifying the result.</li>
+      <li><strong>SLM must store full service topology.</strong> A flat list of service instances is not sufficient. SLM must capture the hierarchical and peer relationships between CFS and RFS instances, including cross-service dependencies. This topology is essential for impact analysis, assurance correlation, and change management.</li>
+      <li><strong>SLM must be the input for change and disconnect orders.</strong> Before SOM processes a change or disconnect order, it must read the current service state from SLM. SOM should never rely on its internal cache or on the order history to determine the current configuration. This ensures that changes are always based on the actual runtime state.</li>
+      <li><strong>SLM must support versioning and audit.</strong> Every change to a service instance should create a new version record, preserving the previous state. This enables time-travel queries (&ldquo;what was the service configuration last Tuesday?&rdquo;) and supports regulatory audit requirements.</li>
+      <li><strong>SLM must be reconciled with domain controllers periodically.</strong> Despite best efforts, SLM and domain controllers may drift out of sync due to manual interventions, network outages, or software bugs. A periodic reconciliation job should compare SLM records with domain controller inventory and flag discrepancies for resolution.</li>
+      <li><strong>SLM must expose a rich query API.</strong> Service operations, assurance, billing, and planning all need to query SLM by different criteria: by customer, by service type, by domain, by location, by state. SLM must support filtering, pagination, and projection to serve these diverse use cases efficiently.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>SLM is the single runtime truth</strong> of what services each customer has active. It is not the same as Product Inventory, which records commercial intent.</li>
+        <li><strong>Product Inventory</strong> is too coarse-grained, lacks full lifecycle states, and cannot represent service topology or domain-specific characteristics.</li>
+        <li><strong>SLM bridges COM, SOM, and billing</strong> by providing the authoritative service instance data that all downstream systems rely upon.</li>
+        <li><strong>Missing or misused SLM</strong> causes billing errors, assurance blind spots, order management failures, regulatory non-compliance, and operational inefficiency.</li>
+        <li><strong>SLM stores CFS and RFS instances</strong> with full topology, lifecycle states, characteristics, and audit history as defined in TMF638.</li>
+        <li><strong>Best practices</strong> include single-writer discipline, full topology storage, read-before-write for changes, versioning, periodic reconciliation, and rich query APIs.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links --><div class="section-nav">
+  <a href="orchestration-domains.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.5 Orchestration Domains</span>
+  </a><a href="bpmn-workflows.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.7 BPMN 2.0 Workflows</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

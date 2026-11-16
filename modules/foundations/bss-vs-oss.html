@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>1.1 BSS vs OSS: The Two Halves — BSS/OSS Academy</title>
+<meta name="description" content="What BSS and OSS actually are, what they own, and why the boundary between them matters."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220; color: #e2e8f0; min-height: 100vh;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; background: #0f172a;
+    border-right: 1px solid #1e293b; position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 50; overflow-y: auto; transition: transform 0.3s ease;
+  }
+  .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-header h1 { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.01em; }
+  .sidebar-header p { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+  .sidebar-nav { padding: 1rem 0; }
+  .sidebar-module {
+    padding: 0.625rem 1.5rem; color: #94a3b8; font-size: 0.875rem; font-weight: 500;
+    transition: all 0.15s; cursor: pointer;
+  }
+  .sidebar-module:hover { background: rgba(30,41,59,0.5); color: #e2e8f0; }
+  .sidebar-module.active { background: rgba(30,58,138,0.2); color: #93c5fd; border-left: 3px solid #3b82f6; }
+  .sidebar-number {
+    display: flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 0.375rem;
+    font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .sidebar-subnav { padding: 0.25rem 0 0.5rem calc(1.5rem + 1.5rem + 0.75rem); }
+  .sidebar-subnav a {
+    display: block; padding: 0.375rem 0.75rem; font-size: 0.8125rem;
+    color: #64748b; border-radius: 0.25rem; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar-subnav a:hover { color: #94a3b8; background: rgba(30,41,59,0.3); }
+  .sidebar-subnav a.active { color: #93c5fd; font-weight: 500; border-left-color: #3b82f6; }
+  .mobile-toggle {
+    display: none; position: fixed; top: 1rem; left: 1rem; z-index: 60;
+    background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; cursor: pointer;
+    align-items: center; justify-content: center; font-size: 1.25rem;
+  }
+  .mobile-toggle:hover { background: #334155; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,0.5); }
+  .main-content { flex: 1; margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; }
+  .page-header { padding: 3rem 2rem 2rem; border-bottom: 1px solid #1e293b; }
+  .page-header .section-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .page-header h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
+  .page-header .subtitle { font-size: 1.125rem; color: #94a3b8; font-weight: 500; max-width: 42rem; }
+  .content-body { padding: 2rem; max-width: 800px; }
+  .content-body h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .content-body h2:first-child { margin-top: 0; }
+  .content-body h3 { font-size: 1.25rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.75rem; }
+  .content-body p { font-size: 0.9375rem; line-height: 1.75; color: #cbd5e1; margin-bottom: 1rem; }
+  .content-body ul, .content-body ol { margin: 0 0 1rem 1.5rem; font-size: 0.9375rem; line-height: 1.75; color: #cbd5e1; }
+  .content-body li { margin-bottom: 0.25rem; }
+  .content-body strong { color: #f1f5f9; font-weight: 600; }
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 600px; }
+  thead { background: #0f172a; }
+  th { text-align: left; padding: 0.75rem 1rem; border: 1px solid #1e293b; color: #f1f5f9; font-weight: 600; font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 0.75rem 1rem; border: 1px solid #1e293b; color: #cbd5e1; line-height: 1.5; }
+  tr:hover td { background: rgba(30,41,59,0.3); }
+  .takeaways { background: rgba(15,23,42,0.6); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #f1f5f9; }
+  .takeaways ul { margin-bottom: 0; }
+  .takeaways li { margin-bottom: 0.5rem; }
+  .takeaways li:last-child { margin-bottom: 0; }
+  .info-box { background: rgba(30,58,138,0.15); border: 1px solid rgba(59,130,246,0.2); border-left: 3px solid #3b82f6; border-radius: 0.5rem; padding: 1.25rem; margin: 1.5rem 0; }
+  .info-box p { margin-bottom: 0; font-size: 0.875rem; color: #94a3b8; }
+  .info-box strong { color: #93c5fd; }
+  .bg-bss { background: #3b82f6; }
+  .bg-service { background: #10b981; }
+  .bg-process { background: #ec4899; }
+  .bg-resource { background: #f59e0b; }
+  .bg-api { background: #8b5cf6; }
+  .footer { text-align: center; padding: 2rem 1.5rem; color: #64748b; font-size: 0.875rem; border-top: 1px solid #1e293b; margin-top: auto; }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .mobile-toggle { display: flex; }
+    .main-content { margin-left: 0; }
+    .page-header { padding: 2rem 1.25rem 1.5rem; padding-top: 4rem; }
+    .page-header h1 { font-size: 1.5rem; }
+    .content-body { padding: 1.5rem 1.25rem; }
+  }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Foundations</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link active-blue">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <p class="section-label">Section 1.1</p>
+      <h1>BSS vs OSS: The Two Halves</h1>
+      <p class="subtitle">What BSS and OSS actually are, what they own, and why the boundary between them matters.</p>
+    </div>
+
+    <div class="content-body">
+
+      <p>In any telecom operator, the technology landscape splits into two fundamental domains: <strong>Business Support Systems (BSS)</strong> and <strong>Operations Support Systems (OSS)</strong>. This is the first distinction a BSS/OSS architect must internalise — it governs how systems are categorised, how data flows between them, and where the handoffs between commercial and technical teams occur.</p>
+
+      <h2>BSS — Business Support Systems</h2>
+      <p>BSS systems manage the <strong>commercial relationship</strong> with the customer. They handle everything from the moment a prospect becomes a lead to the moment revenue is recognised. BSS is where products are defined, orders are captured, and bills are generated.</p>
+
+      <h3>Customer Relationship Management (CRM)</h3>
+      <p>The CRM is the front door for sales and customer service. It manages customer profiles, interactions, opportunities, cases, and provides the user interface through which agents and sometimes customers (via portals) interact with the operator's commercial systems. The CRM typically integrates with the Product Catalog to present sellable offerings and with CPQ for configuration and quoting.</p>
+
+      <h3>Product Catalog</h3>
+      <p>The Product Catalog is the authoritative source of what the operator sells. It holds <strong>Product Offerings</strong> (what the customer buys), <strong>Product Specifications</strong> (the technical definition of the product), and the structural rules that define how products bundle, discount, and depend on each other. Crucially, the Product Catalog sits in the BSS domain but references downstream OSS entities.</p>
+
+      <h3>CPQ (Configure, Price, Quote)</h3>
+      <p>CPQ is the engine that allows sales teams to configure complex product bundles — particularly in B2B scenarios — apply pricing rules, validate eligibility, and generate a commercial quote. The CPQ engine draws heavily on the Product Catalog and pricing tables to ensure every quote is accurate and deliverable.</p>
+
+      <h3>Commercial Order Management (COM)</h3>
+      <p>The COM system manages the <strong>commercial order</strong> — the customer-facing order record. It tracks the order lifecycle from capture through fulfilment and billing. The COM is responsible for order decomposition: deciding how a commercial order maps to service orders that must be executed by the OSS domain.</p>
+
+      <h3>Billing &amp; Rating</h3>
+      <p>Billing systems consume usage records, apply rating and charging logic, generate invoices, manage accounts receivable, and handle dunning. The BSS billing function depends on the Product Catalog for pricing inputs and on the OSS for accurate service and usage data.</p>
+
+      <h3>Product Inventory</h3>
+      <p>Product Inventory holds the customer's purchased products as commercial entities. It answers questions like "Which products does customer X have?" and "What is the current state of each product?" It is distinct from Service and Resource Inventory, which sit in the OSS domain.</p>
+
+      <h2>OSS — Operations Support Systems</h2>
+      <p>OSS systems manage the <strong>technical delivery and operation</strong> of the network and services. They design, provision, monitor, and maintain the services and resources that make the operator's products work.</p>
+
+      <h3>Service Catalog</h3>
+      <p>The Service Catalog defines the <strong>services</strong> the operator can deliver. It contains Customer-Facing Services (CFS) — the services the customer is aware of — and Resource-Facing Services (RFS) — the internal technical services that compose the CFS. The Service Catalog is the bridge between what is sold and what is built.</p>
+
+      <h3>Resource Catalog</h3>
+      <p>The Resource Catalog defines the <strong>physical and logical resources</strong> available in the network: devices, ports, VLANs, IP addresses, virtual network functions, and more. It describes the capabilities and properties of each resource type and the rules for how they can be combined.</p>
+
+      <h3>Service Order Management (SOM)</h3>
+      <p>SOM receives decomposed service orders from the COM and manages their fulfilment. SOM orchestrates the service-level activities — validating service feasibility, allocating service parameters, and instructing the resource layer to configure the network.</p>
+
+      <h3>Resource Order Management (ROM)</h3>
+      <p>ROM is the OSS system that manages orders against network resources. A resource order might instruct a domain controller to create a VLAN, configure a router interface, or spin up a virtual network function. ROM is the last order management layer before the actual network.</p>
+
+      <h3>Service Level Management (SLM)</h3>
+      <p>SLM monitors service performance against contractual targets. It collects KPIs from the network, calculates SLA compliance, and feeds assurance data back to the BSS domain so that billing can apply credits or generate reports. SLM sits at the boundary between Fulfilment and Assurance.</p>
+
+      <h3>Resource Inventory</h3>
+      <p>Resource Inventory holds the <strong>actual state</strong> of all network resources — physical equipment, logical connections, IP allocations, and topology relationships. It is the OSS counterpart to Product Inventory and is the source of truth for what exists in the network.</p>
+
+      <h2>Key Systems by Domain</h2>
+      <p>The following table maps the major systems to their domain and provides a brief purpose statement alongside the relevant TM Forum domain where applicable.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Domain</th>
+              <th>Purpose</th>
+              <th>TM Forum Domain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CRM</td>
+              <td>BSS</td>
+              <td>Manage customer interactions, sales pipeline, and service requests</td>
+              <td>Customer Management</td>
+            </tr>
+            <tr>
+              <td>Product Catalog</td>
+              <td>BSS</td>
+              <td>Define and manage product offerings, specs, and pricing rules</td>
+              <td>Product Management</td>
+            </tr>
+            <tr>
+              <td>CPQ</td>
+              <td>BSS</td>
+              <td>Configure, price, and quote complex product bundles</td>
+              <td>Sales Management</td>
+            </tr>
+            <tr>
+              <td>Order Management (COM)</td>
+              <td>BSS</td>
+              <td>Manage customer orders and orchestrate commercial fulfilment</td>
+              <td>Order Management</td>
+            </tr>
+            <tr>
+              <td>Billing &amp; Rating</td>
+              <td>BSS</td>
+              <td>Rate usage, generate invoices, manage revenue collection</td>
+              <td>Revenue Management</td>
+            </tr>
+            <tr>
+              <td>Product Inventory</td>
+              <td>BSS</td>
+              <td>Track customer subscriptions and product instance state</td>
+              <td>Product Management</td>
+            </tr>
+            <tr>
+              <td>Service Catalog</td>
+              <td>OSS</td>
+              <td>Define CFS and RFS services and their decomposition rules</td>
+              <td>Service Management</td>
+            </tr>
+            <tr>
+              <td>Resource Catalog</td>
+              <td>OSS</td>
+              <td>Define network resource types, capabilities, and topology rules</td>
+              <td>Resource Management</td>
+            </tr>
+            <tr>
+              <td>Service Order Mgmt (SOM)</td>
+              <td>OSS</td>
+              <td>Orchestrate service-level fulfilment and activation</td>
+              <td>Service Management</td>
+            </tr>
+            <tr>
+              <td>Resource Order Mgmt (ROM)</td>
+              <td>OSS</td>
+              <td>Manage resource allocation and network configuration orders</td>
+              <td>Resource Management</td>
+            </tr>
+            <tr>
+              <td>SLM</td>
+              <td>OSS</td>
+              <td>Monitor service levels and report compliance against SLAs</td>
+              <td>Service Assurance</td>
+            </tr>
+            <tr>
+              <td>Resource Inventory</td>
+              <td>OSS</td>
+              <td>Maintain the state of physical and logical network resources</td>
+              <td>Resource Management</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Why the Boundary Matters</h2>
+      <p>Understanding the BSS/OSS boundary is not an academic exercise. It has real architectural and operational consequences:</p>
+      <ul>
+        <li><strong>Data ownership:</strong> BSS owns the customer and product data. OSS owns the service and resource data. Crossing these boundaries without clear API contracts leads to data inconsistency.</li>
+        <li><strong>System lifecycle:</strong> BSS systems change with commercial strategy (new products, pricing changes). OSS systems change with network technology (new equipment, protocols). Different cadences mean different release cycles.</li>
+        <li><strong>Organizational alignment:</strong> BSS typically aligns with Marketing, Sales, and Finance. OSS aligns with Network Engineering and Operations. The boundary is as much about people and process as it is about technology.</li>
+        <li><strong>Integration complexity:</strong> Every flow that crosses the BSS/OSS boundary — an order, a usage record, a service test result — must be carefully mapped to ensure semantics are preserved on both sides.</li>
+        <li><strong>Vendor landscape:</strong> Some vendors cover both BSS and OSS; others specialise. Understanding the boundary helps evaluate vendor coverage accurately.</li>
+      </ul>
+
+      <h2>Key Takeaways</h2>
+      <div class="takeaways">
+        <h3>📌 Key Takeaways</h3>
+        <ul>
+          <li>BSS manages the <strong>commercial relationship</strong> (customer, product, order, billing); OSS manages the <strong>technical delivery</strong> (service, resource, network, assurance).</li>
+          <li>Key BSS systems: CRM, Product Catalog, CPQ, COM, Billing, Product Inventory.</li>
+          <li>Key OSS systems: Service Catalog, Resource Catalog, SOM, ROM, SLM, Resource Inventory.</li>
+          <li>The boundary is defined by data ownership, system lifecycle, organisational structure, and integration patterns.</li>
+          <li>Every order that flows from BSS to OSS must cross this boundary — making catalog-driven decomposition the critical integration pattern.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="section-nav">
+  <a href="catalog-driven-architecture.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">1.2 Catalog-Driven Architecture</span>
+  </a>
+</div>
+
+    <footer class="footer">© 2026. Vendor-neutral. Architecture-first. Built on TM Forum standards.</footer>
+  </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

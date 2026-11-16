@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.5 Orchestration Domains &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.5: Orchestration Domains — How SOM integrates with technology domains including Mobile Core, RAN, Service Platforms, Transport, and IP Core."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.5 Orchestration Domains</span>
+    </nav>
+
+    <h1>3.5 Orchestration Domains</h1>
+    <p class="subtitle">How SOM Integrates with Technology Domains</p>
+
+    <!-- ============================================================ -->
+    <h2>What Are Orchestration Domains?</h2>
+    <p>Orchestration domains are discrete technology silos within a telecom operator's network that are managed by dedicated domain controllers, element management systems (EMS), or network management systems (NMS). In the layered order management model, SOM decomposes service orders into resource-level instructions that must be dispatched to the correct orchestration domain based on the type of resource being activated, modified, or decommissioned.</p>
+    <p>Each orchestration domain has its own native protocols, data models, lifecycle management semantics, and northbound interface. SOM must therefore maintain a mapping layer that translates abstract RFS-level requests into domain-specific activation commands. This mapping is driven by the Resource Catalog (TMF634), which defines resource specifications and their associated domain affinity.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> SOM does not directly configure network elements. Instead, it delegates resource activation to domain-specific orchestration engines and ROM/NSO solutions. SOM's role is to coordinate the overall service fulfilment process across multiple domains, ensuring correct sequencing, dependency management, and state propagation.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Technology Domains and Integration Patterns</h2>
+    <p>The following table summarises the primary technology domains that SOM typically interacts with, the nature of the integration, and the protocols or interfaces used to communicate with each domain.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Domain</th>
+            <th>Description</th>
+            <th>Integration Pattern</th>
+            <th>Protocol / Interface</th>
+            <th>Example Resources</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mobile Core (EPC / 5GC)</td>
+            <td>Packet core network elements including MME, SGW, PGW, UPF, SMF, AMF. Handles subscriber session management, mobility, and QoS enforcement.</td>
+            <td>Direct API to domain controller</td>
+            <td>REST / NETCONF / Diameter</td>
+            <td>APN profiles, QoS flows, subscriber data, network slices</td>
+          </tr>
+          <tr>
+            <td>RAN (Radio Access Network)</td>
+            <td>Radio base stations, NodeB, eNodeB, gNodeB, RNC. Responsible for radio resource management and air interface configuration.</td>
+            <td>Direct API to domain controller</td>
+            <td>NETCONF / RESTCONF / O1 interface</td>
+            <td>Cell configurations, carrier aggregation profiles, RAN slice templates</td>
+          </tr>
+          <tr>
+            <td>Transport (Optical / Microwave)</td>
+            <td>Optical transport network elements including ROADM, OTN switches, microwave links. Provides physical and logical connectivity between sites.</td>
+            <td>ROM / NSO for device configuration</td>
+            <td>NETCONF / SNMP / TL1 / OpenConfig</td>
+            <td>Cross-connects, VLANs, optical channels, protection paths</td>
+          </tr>
+          <tr>
+            <td>IP Core / MPLS</td>
+            <td>IP/MPLS backbone routers, provider edge (PE) routers, route reflectors. Provides L3 VPN, L2 VPN, and IP transit services.</td>
+            <td>ROM / NSO for device configuration</td>
+            <td>NETCONF / RESTCONF / CLI / BGP-LS</td>
+            <td>VRFs, LSPs, BGP communities, QoS policies, ACLs</td>
+          </tr>
+          <tr>
+            <td>Service Platforms (IMS / VoLTE)</td>
+            <td>IP Multimedia Subsystem (IMS), VoLTE/ VoNR cores, application servers for voice, messaging, and supplementary services.</td>
+            <td>Direct API to platform</td>
+            <td>REST / SIP / SOAP / TMF APIs</td>
+            <td>IMPU/IMPI profiles, service triggers, media resource configurations</td>
+          </tr>
+          <tr>
+            <td>SD-WAN Controllers</td>
+            <td>Software-defined WAN controllers that manage customer premises equipment (CPE) and overlay tunnels for enterprise SD-WAN services.</td>
+            <td>Direct API to domain controller</td>
+            <td>REST / NETCONF / YANG-based</td>
+            <td>Overlay topologies, transport bindings, application routing policies</td>
+          </tr>
+          <tr>
+            <td>Access / OLT (Fixed Line)</td>
+            <td>Optical line terminals (OLTs) for fibre access networks (GPON, XGS-PON). Manages ONT/ONU discovery, bandwidth profiles, and VLAN assignments.</td>
+            <td>Direct API or ROM</td>
+            <td>OMCI / NETCONF / REST</td>
+            <td>ONT profiles, VLAN IDs, bandwidth slots, service ports</td>
+          </tr>
+          <tr>
+            <td>Data Centre / Cloud</td>
+            <td>Virtualised infrastructure including NFVI, SDN controllers, cloud orchestration platforms (OpenStack, Kubernetes, VMware).</td>
+            <td>Direct API to cloud orchestrator</td>
+            <td>REST / Heat / Terraform / Kubernetes API</td>
+            <td>Virtual machines, containers, virtual networks, storage volumes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Direct API Integration Pattern</h2>
+    <p>For domains that expose mature, standardised northbound interfaces, SOM can issue activation requests directly to the domain controller. This pattern is most common for Mobile Core, RAN, SD-WAN, and Service Platforms, where vendor-provided controllers expose RESTful or NETCONF-based APIs that can accept high-level resource specifications.</p>
+    <p>In this pattern, SOM constructs a domain-specific payload by mapping the abstract characteristics from the RFS specification (e.g., "qosProfile": "gold", "maxBitrate": "100Mbps") into the domain controller's expected format. The domain controller is responsible for translating this payload into device-level commands and managing the transactional lifecycle on the network elements it controls.</p>
+    <p><strong>Advantages:</strong> Low latency, direct state visibility, reduced architectural complexity. SOM can read back the activation status and resource identifiers directly from the domain controller's inventory.</p>
+    <p><strong>Disadvantages:</strong> Tight coupling to domain controller versioning and API semantics. Changes to the domain controller API may require SOM logic updates. Each domain requires a separate integration adapter within SOM.</p>
+
+    <h3>Mobile Core Integration Example</h3>
+    <p>When SOM needs to provision a new QoS flow for a 5G subscriber, it sends a request to the Mobile Core domain controller with parameters such as SUPI (subscriber identifier), DNN (data network name), 5QI (5G QoS identifier), and ARP (allocation and retention priority). The domain controller translates this into the appropriate PFCP session modifications on the UPF and SMF. SOM tracks the state of the resource order item and updates the service instance accordingly.</p>
+
+    <!-- ============================================================ -->
+    <h2>ROM / NSO Integration Pattern</h2>
+    <p>For domains where device-level configuration is required — particularly Transport, IP Core, and legacy access networks — SOM delegates activation to ROM or a Network Services Orchestrator (NSO) such as Cisco NSO. ROM/NSO maintains the detailed device configurations, manages configuration transactions across multiple devices, and provides a consolidated northbound interface to SOM.</p>
+    <p>In this pattern, SOM issues a resource order (TMF652) to ROM, specifying the RFS to be activated. ROM decomposes this into device-level configuration changes, manages the sequencing of operations on each device, handles rollback in case of partial failure, and synchronises the resulting state to Resource Inventory (TMF639).</p>
+    <p><strong>Advantages:</strong> Abstraction of device complexity from SOM. ROM/NSO can manage multi-vendor, multi-technology environments with transactional integrity. Configuration drift detection and remediation are handled at the ROM layer.</p>
+    <p><strong>Disadvantages:</strong> Additional network hop and potential latency. ROM/NSO licensing costs and operational overhead. State synchronisation between SOM, ROM, and domain controllers must be carefully managed.</p>
+
+    <h3>Transport Domain Example</h3>
+    <p>Consider a business VPN order that requires a new MPLS circuit between two customer sites. The transport segment involves configuring PE routers with a new VRF, establishing an LSP across the MPLS core, and provisioning a cross-connect on the optical transport layer. SOM decomposes this into multiple RFS items and issues a resource order to ROM. ROM coordinates the NETCONF sessions to the PE routers and TL1 commands to the optical equipment, ensuring that the MPLS LSP is established before the VRF is activated, and that the optical cross-connect is provisioned before the LSP is signalled.</p>
+
+    <!-- ============================================================ -->
+    <h2>Catalog-Driven Domain Routing</h2>
+    <p>A critical design principle in SOM is that domain routing decisions should be driven by the Resource Catalog rather than hard-coded in the orchestration logic. The Resource Specification in TMF634 includes attributes and relationships that define which domain controller handles which resource type, what protocol is used, and what mapping rules apply.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Catalog Concept</th>
+            <th>Purpose</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Resource Domain</td>
+            <td>Identifies the technology domain responsible for a resource specification (e.g., "MobileCore", "IPCore", "Transport").</td>
+            <td>A resource spec for "MPLS VPN Port" has domain = "IPCore"</td>
+          </tr>
+          <tr>
+            <td>Domain Endpoint</td>
+            <td>Specifies the API endpoint URL and authentication method for the domain controller.</td>
+            <td><code>https://mc-controller:8443/api/v1/qos</code></td>
+          </tr>
+          <tr>
+            <td>Protocol Binding</td>
+            <td>Maps abstract RFS characteristics to domain-specific payload parameters.</td>
+            <td>CFS "bandwidth" → RFS "committedInfoRate" → domain API "cir"</td>
+          </tr>
+          <tr>
+            <td>Orchestration Strategy</td>
+            <td>Defines whether the domain is integrated directly or via ROM/NSO, and what failure semantics apply.</td>
+            <td>"direct", "rom", "nso", "batch", "sequential"</td>
+          </tr>
+          <tr>
+            <td>Domain Capability</td>
+            <td>Describes what operations a domain supports (create, read, update, delete, test, suspend, restore).</td>
+            <td>IPCore supports CRUD for VRFs and QoS policies</td>
+          </tr>
+          <tr>
+            <td>Characteristic Mapping</td>
+            <td>Transformation rules between service-level characteristics and resource-level parameters.</td>
+            <td>RFS.speed → domain.bandwidthProfile with unit conversion</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>When ROM receives a resource order item from SOM, it looks up the resource specification in the catalog, determines the target domain from the Resource Domain attribute, reads the Domain Endpoint and Protocol Binding, and constructs the appropriate API request. This catalog-driven approach means that adding a new domain or modifying an existing integration does not require changes to the core orchestration engine — only updates to the catalog entries.</p>
+
+    <!-- ============================================================ -->
+    <h2>Per-Domain Engine Mapping</h2>
+    <p>Operators who manage a heterogeneous network with multiple technology generations often deploy a dedicated orchestration engine per domain. For example, a single operator might run:</p>
+    <ul>
+      <li><strong>Mobile Core Orchestrator:</strong> A specialised controller for 4G EPC and 5GC that handles subscriber profiles, session management, and network slicing. Typically provided by the core network vendor (e.g., Ericsson, Nokia, Huawei) and integrated via vendor-specific APIs.</li>
+      <li><strong>RAN Orchestrator:</strong> A radio-specific controller that manages cell configurations, carrier aggregation, RAN slicing, and radio resource management. Often integrated via the O-RAN O1 interface or vendor-proprietary REST APIs.</li>
+      <li><strong>Transport / IP NSO:</strong> A multi-vendor network services orchestrator (e.g., Cisco NSO, Huawei iMaster NCE) that manages the IP/MPLS and optical domains via NETCONF and vendor YANG models.</li>
+      <li><strong>Service Platform Orchestrator:</strong> A controller for IMS/VoLTE services that manages subscriber provisioning, service triggers, and media resource allocation.</li>
+      <li><strong>Cloud / NFV Orchestrator:</strong> An NFV MANO stack (e.g., Open Source MANO, VMware Telco Cloud) that manages VNF lifecycle, virtual network resources, and cloud infrastructure.</li>
+    </ul>
+    <p>SOM must maintain a registry of these domain engines and their capabilities. When a service order is decomposed, SOM determines which domains are involved and dispatches the appropriate instructions to each domain engine. SOM tracks the overall service order state as an aggregate of the individual domain states, applying compensating actions if any domain reports a failure.</p>
+
+    <!-- ============================================================ -->
+    <h2>Cross-Domain Coordination Challenges</h2>
+    <p>Coordinating fulfilment across multiple orchestration domains introduces several architectural challenges:</p>
+    <ul>
+      <li><strong>Sequencing:</strong> Some domains have strict ordering constraints. For example, the IP Core VRF must be created before the transport LSP can be signalled, and both must be completed before the customer-facing service can be declared active. SOM must enforce these sequencing constraints without introducing unnecessary serialisation that would impact overall order throughput.</li>
+      <li><strong>Idempotency:</strong> Domain controllers may receive duplicate requests due to network issues or SOM retry logic. Each domain controller must implement idempotent operations to prevent duplicate resource creation. SOM should include idempotency keys in API requests and handle 409 Conflict responses gracefully.</li>
+      <li><strong>Partial Failure:</strong> When a service order spans multiple domains, it is possible for some domains to succeed while others fail. SOM must implement compensation logic — rolling back successfully completed domain operations when a downstream domain fails. This requires each domain controller to support a "rollback" or "delete" operation for previously created resources.</li>
+      <li><strong>State Synchronisation:</strong> Domain controllers maintain their own view of resource state. SOM must periodically reconcile its view of service instance state against the domain controllers' actual state, especially after network outages or manual interventions. This reconciliation is typically performed by a periodic audit job that compares inventory records.</li>
+      <li><strong>Latency and Timeouts:</strong> Different domains have vastly different activation times. A cloud VNF instantiation might take 20 minutes, while a simple ACL update takes seconds. SOM must support asynchronous processing with configurable timeouts, long-running task tracking, and webhook-based status notification.</li>
+    </ul>
+
+    <div class="highlight">
+      <p><strong>Design guidance:</strong> Each domain controller should expose a standardised northbound interface that supports the lifecycle operations relevant to that domain (create, read, update, delete, test, suspend, restore). SOM should treat each domain as a black box with well-defined state transitions, avoiding assumptions about internal domain behaviour.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Future-Proofing Domain Integration</h2>
+    <p>As operators adopt cloud-native architectures, open RAN, and network slicing, the role of orchestration domains continues to evolve. Key trends include:</p>
+    <ul>
+      <li><strong>Intent-based interfaces:</strong> Instead of specifying exact resource parameters, SOM expresses a high-level intent (e.g., "provide 100 Mbps connectivity between sites A and B with latency below 10 ms"), and the domain controller determines the optimal resource configuration. Intent-based interfaces reduce coupling and allow domain controllers to optimise within their technology domain.</li>
+      <li><strong>Closed-loop assurance integration:</strong> Domain controllers increasingly expose performance metrics and fault information alongside resource state. SOM can use this data to trigger service healing workflows — for example, re-routing a service over an alternative transport path when the primary path degrades.</li>
+      <li><strong>Standardised YANG models:</strong> The adoption of OpenConfig and IETF YANG models as a common representation for network configuration is reducing the integration effort for each domain. SOM and ROM can use YANG-based tooling to validate configuration payloads before dispatching them to domain controllers.</li>
+      <li><strong>Orchestration mesh:</strong> Rather than SOM being the single centralised coordinator, some operators are adopting a distributed orchestration mesh where domain controllers communicate directly with each other for cross-domain resource coordination, with SOM acting as the initial trigger and final aggregator.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>Orchestration domains</strong> are discrete technology silos (Mobile Core, RAN, Transport, IP Core, Service Platforms) each managed by a dedicated domain controller with its own protocols and semantics.</li>
+        <li><strong>Two primary integration patterns</strong> exist: direct API to domain controllers (for Mobile Core, RAN, SD-WAN, Service Platforms) and ROM/NSO delegation for device-level configuration (Transport, IP Core, Access).</li>
+        <li><strong>Catalog-driven routing</strong> ensures that SOM dispatches resource orders to the correct domain controller based on Resource Specification attributes rather than hard-coded logic.</li>
+        <li><strong>Per-domain engines</strong> allow operators to use best-in-breed controllers for each technology domain while SOM coordinates the overall service fulfilment process.</li>
+        <li><strong>Cross-domain coordination</strong> requires handling sequencing constraints, idempotency, partial failure with compensation, state synchronisation, and heterogeneous activation latencies.</li>
+        <li><strong>Future trends</strong> include intent-based interfaces, closed-loop assurance integration, standardised YANG models, and distributed orchestration meshes.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links --><div class="section-nav">
+  <a href="resource-order-management.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.4 Resource Order Management (ROM)</span>
+  </a><a href="slm-installed-base.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.6 SLM &amp; Installed Base</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

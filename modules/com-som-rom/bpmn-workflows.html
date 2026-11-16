@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.7 BPMN 2.0 Workflows &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.7: BPMN 2.0 Workflows — Process orchestration in BSS/OSS, separating process logic from code, visual process design, compensation and jeopardy management."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.7 BPMN 2.0 Workflows</span>
+    </nav>
+
+    <h1>3.7 BPMN 2.0 Workflows</h1>
+    <p class="subtitle">Process Orchestration in BSS/OSS</p>
+
+    <!-- ============================================================ -->
+    <h2>What Is BPMN 2.0 and Why Does It Matter for Ordering?</h2>
+    <p>Business Process Model and Notation (BPMN) 2.0 is the de facto standard for modelling business processes in enterprise systems. In the context of telecom order management, BPMN 2.0 provides the process orchestration layer that governs how order items flow through the COM/SOM/ROM stack, how compensation is triggered on failure, how jeopardy timers are managed, and how human tasks (approvals, site surveys) are integrated into automated workflows.</p>
+    <p>Unlike traditional order management systems where process logic was hard-coded in Java or C++ state machines, modern catalog-driven BSS/OSS platforms externalise process logic into BPMN 2.0 workflow definitions. This separation of process logic from application code is one of the defining characteristics of ODA-compliant architectures. It enables business analysts to design, simulate, and modify order processes without requiring software releases, and it provides a standardised notation that can be understood across the entire organisation &mdash; from product management to network operations.</p>
+    <p>A typical telecom order workflow modelled in BPMN 2.0 might include: validating the commercial order against the product catalog, decomposing product items into CFS and RFS specifications, creating service orders in the SOM system, waiting for service design completion, dispatching resource orders to domain controllers, handling partial failures through compensation, and finally confirming order completion back to the customer portal.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> BPMN 2.0 is not a programming language &mdash; it is a process notation that can be executed directly by a workflow engine. The same diagram that a business analyst draws in a modelling tool can be deployed to a workflow engine (e.g., Camunda, Flowable, Activiti) and executed in production. This eliminates the translation gap between process design and implementation.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Separating Process Logic from Code</h2>
+    <p>In legacy telecom architectures, order processing logic was embedded within the application code of monolithic fulfilment systems. Each order type, each state transition, and each business rule was implemented as conditional logic scattered across dozens of classes and methods. Changing a simple process step such as adding a new approval gate required a full software development lifecycle: requirements, design, coding, testing, and deployment. This made telecom order management systems notoriously rigid and slow to change.</p>
+    <p>BPMN 2.0 addresses this by extracting process logic into external definition files (typically BPMN XML) that are interpreted at runtime by a workflow engine. The application code handles only the technical service tasks &mdash; calling APIs, transforming data, persisting state &mdash; while the workflow engine manages sequencing, branching, parallel execution, timers, error handling, and compensation. The benefits of this separation include:</p>
+    <ul>
+      <li><strong>Faster time-to-market:</strong> Process changes can be made by updating a BPMN diagram and redeploying it to the workflow engine, often without any code change. A new order type can be modelled in days rather than months.</li>
+      <li><strong>Business ownership:</strong> Process analysts and product managers can participate directly in process design. The BPMN notation is intentionally accessible to non-technical stakeholders, enabling collaborative workshops where business rules are captured as process diagrams.</li>
+      <li><strong>Auditability and compliance:</strong> Every process execution produces an audit trail of completed activities, timestamps, and variable values. The BPMN diagram itself serves as living documentation of the process, eliminating the gap between documented processes and implemented processes.</li>
+      <li><strong>Reusability:</strong> Common process fragments (e.g., "Validate Customer Credit", "Check Network Eligibility") can be defined as reusable sub-processes and called from multiple order workflows. Changes to a sub-process propagate automatically to all parent processes.</li>
+      <li><strong>Simulation and optimisation:</strong> BPMN models can be simulated before deployment to predict cycle times, resource utilisation, and bottlenecks. This allows operators to optimise order fulfilment processes before any code is written.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Visual Process Design</h2>
+    <p>BPMN 2.0 provides a rich set of graphical elements for modelling business processes. The core elements are grouped into five categories: Flow Objects (events, activities, gateways), Data (data objects, data stores, messages), Connecting Objects (sequence flows, message flows, associations), Swimlanes (pools and lanes), and Artifacts (groups and text annotations). In the telecom order management context, the following elements are most commonly used:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>BPMN Element</th>
+            <th>Notation</th>
+            <th>Use in Telecom Ordering</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Start Event</td>
+            <td>Circle (single thin border)</td>
+            <td>Triggers the beginning of an order process. Typically fired by an API call from the COM system when a new commercial order is created.</td>
+            <td>Commercial order received from CRM via TMF622 callback</td>
+          </tr>
+          <tr>
+            <td>End Event</td>
+            <td>Circle (single thick border)</td>
+            <td>Terminates the process. Different end types include "Normal" (order completed), "Error" (order failed), and "Cancel" (order cancelled).</td>
+            <td>Order completed successfully; confirmation sent to customer portal</td>
+          </tr>
+          <tr>
+            <td>User Task</td>
+            <td>Rounded rectangle with user icon</td>
+            <td>A task that requires human intervention. Used for approvals, site surveys, manual service design, or exception handling.</td>
+            <td>Credit check approval required; task assigned to credit team</td>
+          </tr>
+          <tr>
+            <td>Service Task</td>
+            <td>Rounded rectangle with cog icon</td>
+            <td>An automated task executed by the workflow engine. Calls an external service or API, then continues automatically.</td>
+            <td>Call TMF641 to create service order in SOM</td>
+          </tr>
+          <tr>
+            <td>Send Task</td>
+            <td>Rounded rectangle with filled envelope</td>
+            <td>Sends a message to another process or system. Used for cross-layer communication between COM, SOM, and ROM.</td>
+            <td>Send service order state change notification to COM</td>
+          </tr>
+          <tr>
+            <td>Receive Task</td>
+            <td>Rounded rectangle with unfilled envelope</td>
+            <td>Waits for a message from another process. Used to synchronise order state between layers.</td>
+            <td>Wait for ROM to confirm resource activation</td>
+          </tr>
+          <tr>
+            <td>Exclusive Gateway</td>
+            <td>Diamond with X mark</td>
+            <td>Branches the process based on a condition. Only one path is taken. Used for order type routing, eligibility decisions.</td>
+            <td>Is order a standard connection or a multi-site VPN?</td>
+          </tr>
+          <tr>
+            <td>Parallel Gateway</td>
+            <td>Diamond with + mark</td>
+            <td>Splits the process into multiple parallel paths. Used to dispatch independent service items or resource activations simultaneously.</td>
+            <td>Activate access circuits at 50 sites in parallel</td>
+          </tr>
+          <tr>
+            <td>Inclusive Gateway</td>
+            <td>Diamond with O mark</td>
+            <td>Branches into one or more paths based on conditions. Used when multiple independent activities may or may not be needed.</td>
+            <td>If add-on services exist, process them; always process main service</td>
+          </tr>
+          <tr>
+            <td>Event-Based Gateway</td>
+            <td>Diamond with pentagon</td>
+            <td>Waits for one of several possible events to occur. Used for timeout handling and jeopardy management.</td>
+            <td>Wait for site survey complete OR timeout (5 days)</td>
+          </tr>
+          <tr>
+            <td>Boundary Event</td>
+            <td>Circle on activity border</td>
+            <td>Attached to an activity to handle exceptions or interruptions. Critical for compensation and jeopardy logic.</td>
+            <td>If resource activation times out, trigger compensation</td>
+          </tr>
+          <tr>
+            <td>Timer Intermediate Event</td>
+            <td>Circle with clock icon</td>
+            <td>Introduces a delay or timeout. Used for SLA tracking and jeopardy escalation.</td>
+            <td>Wait 2 hours between service design and activation attempt</td>
+          </tr>
+          <tr>
+            <td>Error Intermediate Event</td>
+            <td>Circle with lightning bolt</td>
+            <td>Catches an error thrown by a task or sub-process. Routes to error handling logic.</td>
+            <td>Network activation failure → escalate to operations team</td>
+          </tr>
+          <tr>
+            <td>Sub-Process (Collapsed)</td>
+            <td>Rounded rectangle with + sign</td>
+            <td>Embeds a separate, reusable process. Used for standardised activities like "Validate Address" or "Run Credit Check".</td>
+            <td>Sub-process: Validate customer eligibility (reusable across order types)</td>
+          </tr>
+          <tr>
+            <td>Data Object</td>
+            <td>Rectangle with folded corner</td>
+            <td>Represents data flowing through the process. Documents the order state, characteristics, and catalogs referenced.</td>
+            <td>Order item characteristics object passed between tasks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>How BPMN 2.0 Workflow Engines Drive Order Orchestration</h2>
+    <p>A BPMN 2.0 workflow engine (such as Camunda, Flowable, or TIBCO BPM) acts as the orchestration backbone for order management. When a commercial order arrives at the COM system, the workflow engine instantiates a process instance based on the BPMN definition associated with the order type. This process instance becomes the single source of truth for the order's execution state, tracking which activities have been completed, which variables have been set, and which timers are running.</p>
+    <p>The workflow engine interacts with the surrounding BSS/OSS systems through service tasks and send/receive tasks. Each service task is bound to a Java delegate, REST connector, or expression that invokes the appropriate system API. For example, a service task named "Create Service Order" might call the TMF641 Service Ordering API on the SOM system, passing the decomposed order data as JSON payload. The workflow engine waits for the API response, captures the returned service order ID and status, and continues to the next activity in the process.</p>
+    <p>This model provides several critical capabilities for telecom order orchestration:</p>
+    <ul>
+      <li><strong>Stateful execution:</strong> The workflow engine maintains the execution state of each order process instance in a persistent database. If the engine is restarted, all in-flight order processes resume from their last completed activity. This provides exactly-once execution semantics for each process step.</li>
+      <li><strong>Non-blocking orchestration:</strong> Long-running processes (lasting days or weeks) are handled naturally. The engine persists the process state after each activity and waits for external triggers (timers, messages) to resume. This is essential for telecom orders that involve physical delivery, third-party circuit provisioning, or manual site surveys.</li>
+      <li><strong>Parallel execution and synchronisation:</strong> The BPMN parallel gateway splits execution into multiple concurrent paths, each handled by the workflow engine as independent token flows. When all paths complete, the engine synchronises them at a converging parallel gateway before continuing. This enables simultaneous resource activation across multiple network domains.</li>
+      <li><strong>Variable scoping and data persistence:</strong> Process variables (order ID, characteristics, state flags) are stored in the engine's database and are accessible across all activities in the process instance. This eliminates the need for external state storage for order orchestration.</li>
+      <li><strong>History and audit:</strong> Every state transition, variable change, and task completion is recorded in the engine's history tables. This provides a complete audit trail that can be queried for compliance reporting, cycle-time analysis, and bottleneck identification.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Structured Compensation in BPMN 2.0</h2>
+    <p>One of the most important features of BPMN 2.0 for telecom order management is its built-in support for structured compensation. Compensation is the process of undoing partially completed work when a failure occurs. In a layered order model, where a single commercial order may spawn dozens of service and resource orders, the ability to systematically roll back completed activities is essential for maintaining data consistency.</p>
+    <p>BPMN 2.0 compensation works through the concept of <strong>compensation handlers</strong>. Each activity (or sub-process) can define a compensation handler that specifies the actions needed to undo that activity. When an error occurs and compensation is triggered, the workflow engine invokes the compensation handlers of all completed activities in reverse order &mdash; analogous to stack unwinding in programming languages. For example, if a resource activation at site 25 of 50 fails, the engine would compensate the 24 already-activated sites by invoking each site's compensation handler (which might deactivate the resource and release the allocation), then propagate the failure back to the parent process.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> Compensation is fundamentally different from exception handling. Exception handling catches errors and routes to alternative flows within the same activity scope. Compensation undoes already-completed work when a sibling or subsequent activity fails. In telecom ordering, compensation is critical for maintaining inventory accuracy and preventing stranded assets.</p>
+    </div>
+
+    <p>The compensation model in BPMN 2.0 supports several patterns relevant to telecom order management:</p>
+    <ul>
+      <li><strong>Sub-Process Compensation:</strong> When a sub-process fails, the compensation handler of the sub-process is invoked, which in turn triggers compensation of all completed activities within the sub-process. This is the primary pattern for handling partial order failures.</li>
+      <li><strong>Transaction Sub-Process:</strong> BPMN 2.0 defines a special "Transaction" sub-process that provides ACID-like behaviour. If any activity within the transaction fails, all completed activities are automatically compensated. This is useful for order items where atomicity is required, such as provisioning a bundle where all services must succeed or none.</li>
+      <li><strong>Event Sub-Process Compensation:</strong> An event sub-process can be attached to a parent process to handle compensation across process boundaries. This enables compensation propagation between COM, SOM, and ROM workflow instances running in potentially different workflow engines.</li>
+      <li><strong>Manual Compensation:</strong> For activities that cannot be automatically undone (e.g., a physical installation that has already been performed), the compensation handler can create a manual task for an operations team member to reverse the work.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Jeopardy Management with BPMN Boundary Events</h2>
+    <p>Jeopardy management is the practice of detecting when an order is at risk of missing its committed delivery date and taking corrective action before the SLA is breached. BPMN 2.0 provides several mechanisms for implementing jeopardy management directly within the process model, the most important of which is the <strong>boundary event</strong>.</p>
+    <p>A boundary event is attached to the boundary of an activity and interrupts the activity when the event triggers. The most common boundary event for jeopardy management is the <strong>timer boundary event</strong>. For example, a service task "Activate Resource on Domain Controller" might have a timer boundary event set to 30 minutes. If the activation takes longer than 30 minutes, the timer triggers, interrupting the service task and routing the process to a jeopardy escalation flow. The escalation flow might notify the operations team, escalate to a senior engineer, or route the order to a manual handling queue.</p>
+    <p>The typical jeopardy management pattern in BPMN 2.0 includes:</p>
+    <ul>
+      <li><strong>SLA timers on service tasks:</strong> Each order processing step that has an SLA target gets a timer boundary event corresponding to the SLA deadline. If the task completes within the SLA, the timer is cancelled. If the timer fires first, jeopardy is declared.</li>
+      <li><strong>Escalation gateways:</strong> When a timer fires, an exclusive gateway routes the process to the appropriate escalation path based on the severity and duration of the jeopardy. First-level escalation might notify the team lead; second-level might escalate to management; third-level might trigger a executive escalation.</li>
+      <li><strong>Jeopardy counter and threshold:</strong> Process variables track the number of jeopardy events and the duration of the jeopardy state. When thresholds are exceeded (e.g., three jeopardy events on the same order item), the process may trigger automatic compensation and order cancellation.</li>
+      <li><strong>Customer notification tasks:</strong> Service tasks at each jeopardy level send notifications to the customer portal, email, or SMS, informing the customer of potential delays and providing updated estimated completion times.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>BPMN 2.0 Workflow Patterns in Telecom Ordering</h2>
+    <p>The following table summarises the most common BPMN 2.0 workflow patterns found in telecom order management and how they map to real-world ordering scenarios:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Workflow Pattern</th>
+            <th>BPMN Construct</th>
+            <th>Telecom Ordering Example</th>
+            <th>Benefit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sequential Processing</td>
+            <td>Sequence flow with service tasks</td>
+            <td>Validate order &rarr; Check credit &rarr; Decompose to service items</td>
+            <td>Simple, predictable execution; easy to audit</td>
+          </tr>
+          <tr>
+            <td>Parallel Split</td>
+            <td>Parallel Gateway (fork)</td>
+            <td>Activate access circuits at 50 locations simultaneously</td>
+            <td>Reduces total order fulfilment time significantly</td>
+          </tr>
+          <tr>
+            <td>Synchronisation</td>
+            <td>Parallel Gateway (join)</td>
+            <td>Wait for all 50 site activations before marking order complete</td>
+            <td>Ensures all dependent work is finished before proceeding</td>
+          </tr>
+          <tr>
+            <td>Exclusive Choice</td>
+            <td>Exclusive Gateway</td>
+            <td>Route order based on service type: broadband vs. leased line vs. VPN</td>
+            <td>Single process definition handles multiple order types</td>
+          </tr>
+          <tr>
+            <td>Multi-Choice</td>
+            <td>Inclusive Gateway</td>
+            <td>Process add-on services that may or may not be present on the order</td>
+            <td>Flexible handling of optional order items</td>
+          </tr>
+          <tr>
+            <td>Event-Based Choice</td>
+            <td>Event-Based Gateway</td>
+            <td>Wait for either: site survey complete, survey timeout, or customer cancellation</td>
+            <td>Graceful handling of real-world order uncertainty</td>
+          </tr>
+          <tr>
+            <td>Deferred Choice</td>
+            <td>Boundary events on sub-process</td>
+            <td>Begin service design while waiting for credit approval; cancel design if credit rejected</td>
+            <td>Optimistic concurrency reduces overall order cycle time</td>
+          </tr>
+          <tr>
+            <td>Milestone</td>
+            <td>Intermediate events with definitions</td>
+            <td>Capture key order lifecycle milestones: Validated, Designed, Activated, Billed</td>
+            <td>Provides clear visibility into order progress for customer service</td>
+          </tr>
+          <tr>
+            <td>Compensation</td>
+            <td>Compensation boundary events and handlers</td>
+            <td>Roll back completed site activations when one site in the bundle fails</td>
+            <td>Prevents stranded assets and maintains inventory integrity</td>
+          </tr>
+          <tr>
+            <td>Retry with Back-off</td>
+            <td>Loop with timer events</td>
+            <td>Retry network activation up to 3 times with exponential back-off (5 min, 15 min, 45 min)</td>
+            <td>Resilience against transient network element failures</td>
+          </tr>
+          <tr>
+            <td>Escalation Handling</td>
+            <td>Boundary error events, escalation sub-processes</td>
+            <td>Escalate to operations supervisor if resource activation fails after 3 retries</td>
+            <td>Ensures manual intervention for persistent failures</td>
+          </tr>
+          <tr>
+            <td>State Propagation</td>
+            <td>Send/Receive tasks across pools</td>
+            <td>COM process sends state change to SOM; SOM confirms with receive task</td>
+            <td>Cross-layer synchronisation in multi-engine deployments</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Integration with the Catalog-Driven Architecture</h2>
+    <p>BPMN 2.0 workflows do not operate in isolation. They are tightly integrated with the catalog-driven architecture of modern BSS/OSS platforms. The product, service, and resource catalogs define not only the entity structures but also the decomposition rules that the workflow engine uses to determine how to process an order. When a commercial order arrives, the workflow engine queries the catalog to understand the structure of the ordered product, determines which CFS specifications are required, and invokes the appropriate service order creation tasks based on catalog relationships.</p>
+    <p>This integration creates a powerful synergy: the catalog defines <strong>what</strong> needs to be done (the entities, their characteristics, and their relationships), while the BPMN workflow defines <strong>how</strong> it gets done (the sequencing, branching, compensation, and jeopardy logic). Together, they provide a complete model-driven approach to order management where both the data model and the process model are externalised and declarative, rather than hard-coded in application logic.</p>
+    <p>In practice, the workflow engine references the catalog at several points during order execution:</p>
+    <ul>
+      <li><strong>Order validation:</strong> The workflow invokes a service task that validates the order against the product catalog, ensuring that all required characteristics are present and that the product is in an active, purchasable state.</li>
+      <li><strong>Decomposition:</strong> The workflow calls the catalog's decomposition service to translate product specification items into CFS specification items, generating the service order payload.</li>
+      <li><strong>Characteristic mapping:</strong> The workflow maps commercial characteristics to service characteristics using the catalog-defined transformation rules (e.g., "speedTier" maps to "committedRate" in the CFS specification).</li>
+      <li><strong>Resource specification selection:</strong> The service order workflow queries the resource catalog to determine which resource specifications are needed to fulfil each RFS, considering resource availability and capacity constraints.</li>
+      <li><strong>State feedback:</strong> When a resource order completes, the workflow updates the service inventory (TMF638) and, if applicable, triggers a notification back to the commercial order system to update the product order status.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Multi-Engine Orchestration</h2>
+    <p>In large telecom deployments, it is common to have separate workflow engines for each order layer or for different network domains. A commercial order might be processed by a central orchestration engine, which then delegates service order execution to a SOM-specific engine, which in turn delegates resource orders to domain-specific engines (access network, core network, IP/MPLS, data centre). This <strong>multi-engine orchestration</strong> pattern introduces additional complexity around state synchronisation and compensation propagation across engine boundaries.</p>
+    <p>BPMN 2.0 addresses cross-engine orchestration through <strong>pools and message flows</strong>. Each engine operates within its own pool (representing a separate process participant), and message flows carry order state notifications between pools. In the BPMN XML, message flows are typed with message definitions that correspond to the TM Forum API payloads. When the COM engine sends a "Create Service Order" message to the SOM engine pool, the SOM engine's process instance receives the message at a receive task, and the two engine instances become logically linked for the duration of the order lifecycle.</p>
+    <p>The key considerations for multi-engine BPMN orchestration in telecom include:</p>
+    <ul>
+      <li><strong>Correlation:</strong> Each engine must be able to correlate incoming messages to the correct process instance. Correlation is typically based on the order ID (e.g., commercial order ID, service order ID) that is carried in each message.</li>
+      <li><strong>Idempotency:</strong> Message delivery must be idempotent to handle duplicate messages caused by network retries or engine restarts. Each receive task should check whether the message has already been processed before updating state.</li>
+      <li><strong>Compensation chains:</strong> When a resource order fails in the ROM engine, the compensation must propagate upward: ROM compensates its activities, sends a failure message to SOM, SOM compensates its activities, and sends a failure message to COM. This chain of compensation across engines must be carefully designed to avoid deadlocks or partial compensation.</li>
+      <li><strong>Time synchronisation:</strong> In multi-engine deployments, all engines must use a common time source (e.g., NTP) to ensure that timer events and SLA tracking are consistent across layers.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>BPMN 2.0</strong> is the standard notation for process orchestration in modern telecom order management, providing visual, executable process definitions that separate process logic from application code.</li>
+        <li><strong>Separating process logic from code</strong> enables faster time-to-market, business ownership of processes, built-in auditability, and simulation-driven optimisation of order flows.</li>
+        <li><strong>BPMN flow objects</strong> (events, activities, gateways) map directly to telecom ordering patterns: parallel gateways enable multi-site activation, exclusive gateways handle order-type routing, and boundary events provide jeopardy management and compensation.</li>
+        <li><strong>Structured compensation</strong> is a first-class concept in BPMN 2.0, enabling systematic rollback of completed activities when a sibling or subsequent activity fails. This is critical in telecom to prevent stranded network resources and maintain inventory consistency.</li>
+        <li><strong>Jeopardy management</strong> is implemented through timer boundary events that detect SLA breaches, trigger escalation flows, and enable automated customer notifications before the committed delivery date is missed.</li>
+        <li><strong>Catalog integration</strong> connects the workflow engine to the product, service, and resource catalogs, creating a complete model-driven approach where the catalog defines <strong>what</strong> to build and BPMN defines <strong>how</strong> to build it.</li>
+        <li><strong>Multi-engine orchestration</strong> using BPMN pools and message flows enables large telecom operators to deploy separate workflow engines for each order layer while maintaining end-to-end state synchronisation and compensation propagation.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links -->
+    </div><div class="section-nav">
+  <a href="slm-installed-base.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.6 SLM &amp; Installed Base</span>
+  </a><a href="e2e-data-lineage.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.8 E2E Data Lineage</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.10 Hybrid COM/SOM (ACL) &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.10: Hybrid COM/SOM and the Anti-Corruption Layer — real-world transformation patterns, legacy COM retention, TMF-aligned SOM, and ACL bridging strategies."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.10 Hybrid COM/SOM &amp; the Anti-Corruption Layer</span>
+    </nav>
+
+    <h1>3.10 Hybrid COM/SOM &amp; the Anti-Corruption Layer</h1>
+    <p class="subtitle">Real-World Transformation Patterns</p>
+
+    <!-- ============================================================ -->
+    <h2>The Reality of Telecom Transformation</h2>
+    <p>Textbook BSS/OSS architecture describes a clean COM layer built on TMF620/TMF622, a SOM layer built on TMF633/TMF641, and a ROM layer built on TMF634/TMF652&#8212;each with aligned catalogs, standardized APIs, and independent state machines. In practice, almost no operator achieves this greenfield vision. The overwhelming majority of telecom transformations follow a hybrid pattern: the legacy COM system is retained (often a heavily customised Siebel, Oracle BRM, or Amdocs CES), while a new TMF-aligned SOM system is introduced beneath it to manage modern service types and network technologies.</p>
+    <p>This asymmetry is not a failure of architecture. It is a pragmatic response to the business reality that legacy COM systems contain millions of dollars of configured business logic&#8212;pricing rules, approval workflows, entitlement checks, contract management, and billing integration&#8212;that cannot be rewritten in a single programme phase. The hybrid COM/SOM pattern acknowledges that the commercial layer evolves slowly while the service and resource layers must move quickly to support new digital services, 5G slicing, SD-WAN, and cloud-native network functions.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> The hybrid COM/SOM pattern is not a temporary workaround. For most Tier-1 and Tier-2 operators, it is the target operating model for 5&#8211;10 years. The anti-corruption layer (ACL) that bridges the legacy COM and modern SOM is one of the most architecturally significant components in the entire BSS/OSS stack.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Why Operators Keep Legacy COM</h2>
+    <p>The decision to retain a legacy COM system is driven by several factors that transcend technical preference:</p>
+    <ul>
+      <li><strong>Commercial logic complexity:</strong> Legacy COM systems contain highly customised pricing engines, discount hierarchies, contract term calculations, and revenue recognition rules that have been refined over decades. Re-implementing this logic in a new system carries prohibitive risk of revenue leakage and billing disputes.</li>
+      <li><strong>Regulatory compliance:</strong> Telecom operators are subject to strict regulatory requirements for billing accuracy, audit trails, data retention, and consumer protection. Legacy COM systems have been certified through multiple regulatory audits. A new system would require re-certification, a multi-year process with significant financial and legal exposure.</li>
+      <li><strong>Integration debt:</strong> Legacy COM systems are deeply integrated with upstream CRM platforms, downstream billing systems, financial ERP systems, and third-party partner portals. The integration surface area is typically thousands of interfaces. Replacing COM would require re-implementing every one of these integrations in a new target system.</li>
+      <li><strong>Business continuity:</strong> Order management is a 24x7x365 operation. A "big bang" COM replacement carries unacceptable risk of order processing downtime. Operators prefer a gradual, system-by-system migration where SOM, ROM, and network domains are modernised first, and COM is addressed in a later programme phase (or indefinitely deferred).</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>The Anti-Corruption Layer (ACL)</h2>
+    <p>Drawn from Eric Evans&#8217; Domain-Driven Design, the Anti-Corruption Layer is a defensive boundary that prevents concepts and data models from one bounded context from leaking into another. In the hybrid COM/SOM pattern, the ACL sits between the legacy COM system and the modern SOM system, translating between their incompatible semantic models, API protocols, and state machines.</p>
+
+    <h3>What Crosses the ACL Boundary</h3>
+    <p>The ACL must translate a carefully scoped subset of data and commands between the two systems. Not everything flows through the ACL&#8212;only the data that must be shared to fulfil the order lifecycle.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Direction</th>
+            <th>Data / Command</th>
+            <th>Legacy COM Representation</th>
+            <th>Modern SOM Representation</th>
+            <th>ACL Transformation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>COM &rarr; SOM</td>
+            <td>Product Offering &rarr; CFS Mapping</td>
+            <td>Product ID + SKU code with embedded characteristics (e.g., SKU = "MPLS-100-GOLD")</td>
+            <td>CFS specification ID with explicit characteristic array (speed=100Mbps, class=Gold)</td>
+            <td>SKU lookup table resolves product code to CFS IDs. Embedded characteristics are extracted and normalised into TMF characteristic key-value pairs.</td>
+          </tr>
+          <tr>
+            <td>COM &rarr; SOM</td>
+            <td>Customer Context</td>
+            <td>Customer ID (legacy billing system ID), account hierarchy as a flat string field</td>
+            <td>Party role with party ID (TMF629-compliant), hierarchical account structure with bill-to/ship-to roles</td>
+            <td>Customer ID is mapped to the TMF629 party profile. Account hierarchy is reconstructed from the flat string using a parser that understands the legacy delimiter convention.</td>
+          </tr>
+          <tr>
+            <td>COM &rarr; SOM</td>
+            <td>Order Lifecycle Command</td>
+            <td>Proprietary order action codes (e.g., "A" for add, "C" for change, "D" for disconnect) with order-level status field</td>
+            <td>TMF641 order action enum (add / modify / delete) with item-level state machine and order correlation ID</td>
+            <td>Action codes are mapped to TMF641 enums. The order-level status is decomposed into item-level states. A correlation ID is generated for tracking.</td>
+          </tr>
+          <tr>
+            <td>COM &rarr; SOM</td>
+            <td>SLA / Contract Terms</td>
+            <td>Contract ID referenced in a text note field, SLA embedded in product configuration</td>
+            <td>Service Level Specification ID with structured SLA parameters: availability target, mean time to repair, service window</td>
+            <td>Contract ID is resolved to a service level specification via a contract-to-SLA mapping table. Text-based SLA descriptions are parsed into structured parameters.</td>
+          </tr>
+          <tr>
+            <td>SOM &rarr; COM</td>
+            <td>Order State Notification</td>
+            <td>Numeric status codes (e.g., "10" = submitted, "20" = in progress, "50" = completed, "99" = failed) with no item-level granularity</td>
+            <td>TMF641 state transitions with item-level status, reason codes, and completion timestamps</td>
+            <td>Item-level states are aggregated to order-level status codes. Multiple item states are reduced to a single dominant status using configurable aggregation rules.</td>
+          </tr>
+          <tr>
+            <td>SOM &rarr; COM</td>
+            <td>Service Instance Reference</td>
+            <td>No equivalent concept. Legacy COM tracked only the product instance and billing account.</td>
+            <td>Service instance ID (TMF638) with service characteristics, resource references, and topology</td>
+            <td>Service instance IDs are stored in the COM system as an extension attribute on the product order item. The ACL creates and manages this extension field.</td>
+          </tr>
+          <tr>
+            <td>SOM &rarr; COM</td>
+            <td>Fulfilment Detail</td>
+            <td>Completion flag + activation date only</td>
+            <td>Per-item completion status, activation timestamp, resource identifiers, and configuration summary</td>
+            <td>Detailed fulfilment data is aggregated into a summary record and also published to a data lake for analytical consumption without burdening the COM data model.</td>
+          </tr>
+          <tr>
+            <td>Bidirectional</td>
+            <td>Exception / Error Events</td>
+            <td>Error code + free-text description (character limited to 255)</td>
+            <td>Structured error event with category, code, detail, timestamp, and correlation chain</td>
+            <td>Structured error events are flattened to the legacy error format for COM consumption. Legacy errors are enriched with structured metadata for SOM processing.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Where the Product-to-CFS Mapping Lives</h2>
+    <p>A critical architectural decision in the hybrid COM/SOM pattern is where the product offering to CFS specification mapping is stored and maintained. There are three common approaches, each with trade-offs:</p>
+
+    <h3>Approach 1: Mapping in the ACL</h3>
+    <p>The ACL maintains a mapping table that resolves legacy SKU codes to CFS specification IDs. This approach keeps the legacy COM system and the new Service Catalog completely decoupled. The mapping table can be updated independently, allowing the SOM team to introduce new CFS specifications without touching the legacy COM system. The downside is that the ACL becomes a de facto catalog system, with mapping logic that can grow complex as product configurations proliferate. Operators using this approach typically build a lightweight mapping UI within the ACL to allow business analysts to manage the mappings without developer involvement.</p>
+
+    <h3>Approach 2: Mapping in the Service Catalog</h3>
+    <p>The Service Catalog (TMF633) is extended with an additional attribute on each service specification that records which legacy SKU codes map to that CFS. When the ACL receives a product order from COM, it queries the Service Catalog to retrieve the CFS specification ID for the given SKU. This approach keeps the mapping in the "correct" system (the catalog) and avoids duplicating mapping logic. However, it introduces a dependency between the ACL and the Service Catalog&#8212;if the catalog is unavailable, the ACL cannot decompose incoming orders, which may be unacceptable for high-availability requirements.</p>
+
+    <h3>Approach 3: Mapping in Both (with Source-of-Record Designation)</h3>
+    <p>The mapping is stored in both the ACL cache and the Service Catalog, with the Service Catalog designated as the system of record. The ACL maintains a local cache that is refreshed on a schedule (e.g., every 15 minutes) or via an event-driven invalidation mechanism. This approach provides the availability benefits of Approach 1 while preserving the Service Catalog as the authoritative source. It adds complexity in cache synchronisation and conflict resolution, but it is the most robust pattern for Tier-1 operators.</p>
+
+    <!-- ============================================================ -->
+    <h2>Catalog Governance in a Hybrid Setup</h2>
+    <p>When COM and SOM operate on different catalog paradigms, governance becomes a cross-organisational challenge. The legacy COM catalog (typically maintained by the Product Management team) and the new Service Catalog (maintained by the Service Design team) must be kept synchronised, even though they evolve at different cadences and serve different purposes.</p>
+    <p>Key governance practices for hybrid catalog environments include:</p>
+    <ul>
+      <li><strong>Cross-catalog impact assessment:</strong> Any change to a product offering in the legacy catalog triggers an impact assessment in the Service Catalog. The product manager and service catalogue manager jointly review whether existing CFS specifications can fulfil the new offering or whether a new CFS specification must be created.</li>
+      <li><strong>Characteristic harmonisation:</strong> The same business concept (e.g., "bandwidth") may be represented as a product characteristic in the legacy COM catalog and a service characteristic in the Service Catalog with different names, data types, and value ranges. A characteristic mapping matrix is maintained by the ACL team and reviewed quarterly.</li>
+      <li><strong>Release coordination:</strong> Product releases are sequenced to avoid introducing new offerings that have no corresponding CFS specification (causing order decomposition failures). A joint release calendar tracks both catalog release cycles, with a mandatory one-week cross-catalog testing window before any production deployment.</li>
+      <li><strong>Audit and reconciliation:</strong> A weekly reconciliation process compares the set of active product offerings in the legacy COM catalog against the set of CFS specifications in the Service Catalog. Discrepancies are flagged, and a remediation ticket is created in the governance workflow system.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Implementation Technology Stack</h2>
+    <p>The ACL is typically implemented as a set of microservices rather than a monolithic integration hub. The most common technology choices observed in production hybrid COM/SOM deployments include:</p>
+    <ul>
+      <li><strong>Spring Boot:</strong> The ACL services are built as Spring Boot applications with Spring Integration or Spring Cloud Stream for message-driven communication. Each translation concern (SKU mapping, customer context, order state) is a separate Spring Boot service with its own data store and API contract. Spring&#8217;s component model allows translation logic to be composed from reusable transformers, validators, and enrichers.</li>
+      <li><strong>Apache Camel:</strong> Camel is used extensively for the routing and transformation layer within the ACL. Camel&#8217;s enterprise integration patterns (splitter, aggregator, content enricher, normaliser) map directly to the ACL&#8217;s responsibilities. A Camel route reads a legacy COM order message from a JMS queue, applies a series of transformations (XSLT, data mapping, enrichment from the Service Catalog), and produces a TMF641-compliant service order to a Kafka topic.</li>
+      <li><strong>Kafka / JMS:</strong> Asynchronous messaging is the backbone of the ACL. COM&#8217;s existing JMS infrastructure is retained for outbound messages from COM, while Kafka is introduced as the new event backbone for the SOM side. The ACL bridges the two, consuming from JMS and producing to Kafka, with exactly-once delivery semantics managed through idempotent consumers and transactional outbox patterns.</li>
+      <li><strong>Redis / Hazelcast:</strong> The ACL maintains local caches for SKU-to-CFS mappings, contract-to-SLA mappings, and customer profile lookups. Redis is used for simple key-value caching with TTL-based invalidation. Hazelcast provides a distributed computing layer when the ACL must perform aggregations across multiple legacy COM instances (common in operators with regional COM deployments).</li>
+      <li><strong>OpenAPI / AsyncAPI:</strong> The ACL exposes its own API surface for monitoring, management, and manual intervention. OpenAPI definitions document the REST endpoints used by operations teams to view translation logs, retry failed messages, and update mapping tables. AsyncAPI specifications document the event flows between COM, ACL, and SOM.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>When the Hybrid Pattern Becomes a "Clean-Up-Later" Smell</h2>
+    <p>The hybrid COM/SOM pattern is powerful, but it carries a well-documented risk: the anti-corruption layer can become a dumping ground for business logic that belongs in either COM or SOM. This occurs when the ACL is treated as a convenient place to "just fix it" rather than addressing the root cause in the source system.</p>
+    <p>Warning signs that the ACL has become a "clean-up-later" smell include:</p>
+    <ul>
+      <li><strong>Business logic migration:</strong> The ACL begins to contain pricing adjustments, discount calculations, or eligibility rules that should remain in COM. Over time, the ACL accumulates a shadow copy of commercial logic that diverges from the COM implementation, leading to order value discrepancies.</li>
+      <li><strong>State machine duplication:</strong> The ACL implements its own order state machine that overlays additional states not present in either COM or SOM. This creates a situation where an order must pass through three state machines (COM, ACL, SOM) to be fulfilled, tripling the surface area for state-related defects.</li>
+      <li><strong>Persistent data storage:</strong> The ACL begins storing data that is neither purely transient (translation context) nor properly mastered in another system. The ACL&#8217;s database grows to include order snapshots, fulfilment summaries, and customer preferences that should reside in COM, SOM, or a dedicated data lake.</li>
+      <li><strong>Manual intervention endpoints:</strong> The ACL exposes endpoints that allow operations teams to bypass COM or SOM directly, making changes to order state or characteristics that are not propagated back to the source systems. This breaks the audit trail and creates reconciliation nightmares.</li>
+      <li><strong>Translation complexity explosion:</strong> The mapping tables in the ACL grow from hundreds of entries to tens of thousands, with special cases, date-effective overrides, and partner-specific exceptions. At this point, the ACL has effectively become a fourth order management layer, and the original architectural intent of a thin translation boundary has been lost.</li>
+    </ul>
+    <p>To avoid this smell, architects must enforce a strict discipline: the ACL translates data formats and API protocols; it does not implement business logic. Any transformation that involves a business decision (pricing, eligibility, approval routing) must be pushed back to COM, SOM, or a dedicated decision service that is explicitly within the bounded context of one domain.</p>
+
+    <!-- ============================================================ -->
+    <h2>Migration Strategy: From Hybrid to Pure</h2>
+    <p>For operators who eventually wish to retire the legacy COM system and operate a pure TMF-aligned three-layer stack, the hybrid COM/SOM pattern provides a structured migration path:</p>
+    <ul>
+      <li><strong>Phase 1 &mdash; Encapsulate:</strong> The ACL is built to encapsulate the legacy COM system behind a TMF622-compliant facade. New consumer systems (digital portals, partner APIs, mobile apps) interact with the ACL rather than directly with legacy COM. This phase typically takes 6&#8211;12 months.</li>
+      <li><strong>Phase 2 &mdash; Extract:</strong> Individual business capabilities are extracted from legacy COM into a new TMF-aligned COM system, one capability at a time. The ACL is refactored to route the extracted capability&#8217;s traffic to the new COM system. The legacy COM system is gradually hollowed out. This phase typically takes 2&#8211;4 years.</li>
+      <li><strong>Phase 3 &mdash; Decommission:</strong> Once all capabilities have been extracted and the legacy COM system processes no active orders, the legacy COM system is decommissioned. The ACL is either retired (if the new COM speaks TMF622 natively) or simplified to a thin protocol adapter for any remaining legacy integration points. This phase is rarely reached before year 5.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>The hybrid COM/SOM pattern is the real-world norm</strong> for telecom BSS/OSS transformations. Legacy COM systems are retained due to commercial logic complexity, regulatory compliance requirements, deep integration debt, and business continuity constraints.</li>
+        <li><strong>The Anti-Corruption Layer (ACL)</strong> is the critical architectural component that translates between the legacy COM&#8217;s proprietary data model and the modern SOM&#8217;s TMF-aligned model. The ACL must handle SKU-to-CFS mapping, customer context translation, order lifecycle commands, state notifications, and error event normalisation.</li>
+        <li><strong>Product-to-CFS mapping</strong> can reside in the ACL (decoupled but risks catalog duplication), the Service Catalog (clean but creates availability dependency), or both with cache synchronisation (most robust for Tier-1 operators).</li>
+        <li><strong>Catalog governance</strong> in a hybrid setup requires cross-catalog impact assessment, characteristic harmonisation matrices, joint release coordination, and weekly reconciliation to prevent divergence between the legacy product catalog and the new Service Catalog.</li>
+        <li><strong>The ACL is typically implemented with Spring Boot</strong> (for service composition), Apache Camel (for routing and transformation), Kafka/JMS (for asynchronous messaging), and Redis/Hazelcast (for caching). It exposes its own API surface via OpenAPI/AsyncAPI for monitoring and management.</li>
+        <li><strong>The "clean-up-later" smell</strong> occurs when the ACL accumulates business logic, state machine overlays, persistent storage, and manual intervention endpoints. Architects must enforce that the ACL translates data and protocols only&#8212;it does not implement business decisions.</li>
+        <li><strong>A phased migration strategy</strong>&#8212;encapsulate, extract, decommission&#8212;provides a structured path from the hybrid pattern to a pure TMF-aligned three-layer stack over a 5&#8211;7 year horizon.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links -->
+    </div><div class="section-nav">
+  <a href="simulate-order-workflow.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.9 Simulate Order Workflow</span>
+  </a><a href="../inventory-activation/inventory-overview.html" class="nav-next">
+    <span class="nav-label">Next Module &rarr;</span>
+    <span class="nav-title">4.1 Inventory Overview</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

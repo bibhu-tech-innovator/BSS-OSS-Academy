@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>1.4 Lead-to-Cash and Its Sub-Domain Processes — BSS/OSS Academy</title>
+<meta name="description" content="The L2C master process decomposed into L2O, O2A, and O2C — plus the companion Trouble-to-Resolve (T2R) process."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220; color: #e2e8f0; min-height: 100vh;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; background: #0f172a;
+    border-right: 1px solid #1e293b; position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 50; overflow-y: auto; transition: transform 0.3s ease;
+  }
+  .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-header h1 { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.01em; }
+  .sidebar-header p { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+  .sidebar-nav { padding: 1rem 0; }
+  .sidebar-module {
+    padding: 0.625rem 1.5rem; color: #94a3b8; font-size: 0.875rem; font-weight: 500;
+    transition: all 0.15s; cursor: pointer;
+  }
+  .sidebar-module:hover { background: rgba(30,41,59,0.5); color: #e2e8f0; }
+  .sidebar-module.active { background: rgba(30,58,138,0.2); color: #93c5fd; border-left: 3px solid #3b82f6; }
+  .sidebar-number {
+    display: flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 0.375rem;
+    font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .sidebar-subnav { padding: 0.25rem 0 0.5rem calc(1.5rem + 1.5rem + 0.75rem); }
+  .sidebar-subnav a {
+    display: block; padding: 0.375rem 0.75rem; font-size: 0.8125rem;
+    color: #64748b; border-radius: 0.25rem; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar-subnav a:hover { color: #94a3b8; background: rgba(30,41,59,0.3); }
+  .sidebar-subnav a.active { color: #93c5fd; font-weight: 500; border-left-color: #3b82f6; }
+  .mobile-toggle {
+    display: none; position: fixed; top: 1rem; left: 1rem; z-index: 60;
+    background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; cursor: pointer;
+    align-items: center; justify-content: center; font-size: 1.25rem;
+  }
+  .mobile-toggle:hover { background: #334155; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,0.5); }
+  .main-content { flex: 1; margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; }
+  .page-header { padding: 3rem 2rem 2rem; border-bottom: 1px solid #1e293b; }
+  .page-header .section-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .page-header h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
+  .page-header .subtitle { font-size: 1.125rem; color: #94a3b8; font-weight: 500; max-width: 42rem; }
+  .content-body { padding: 2rem; max-width: 800px; }
+  .content-body h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .content-body h2:first-child { margin-top: 0; }
+  .content-body h3 { font-size: 1.25rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.75rem; }
+  .content-body p { font-size: 0.9375rem; line-height: 1.75; color: #cbd5e1; margin-bottom: 1rem; }
+  .content-body ul, .content-body ol { margin: 0 0 1rem 1.5rem; font-size: 0.9375rem; line-height: 1.75; color: #cbd5e1; }
+  .content-body li { margin-bottom: 0.25rem; }
+  .content-body strong { color: #f1f5f9; font-weight: 600; }
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 600px; }
+  thead { background: #0f172a; }
+  th { text-align: left; padding: 0.75rem 1rem; border: 1px solid #1e293b; color: #f1f5f9; font-weight: 600; font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 0.75rem 1rem; border: 1px solid #1e293b; color: #cbd5e1; line-height: 1.5; }
+  tr:hover td { background: rgba(30,41,59,0.3); }
+  .takeaways { background: rgba(15,23,42,0.6); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #f1f5f9; }
+  .takeaways ul { margin-bottom: 0; }
+  .takeaways li { margin-bottom: 0.5rem; }
+  .takeaways li:last-child { margin-bottom: 0; }
+  .info-box { background: rgba(30,58,138,0.15); border: 1px solid rgba(59,130,246,0.2); border-left: 3px solid #3b82f6; border-radius: 0.5rem; padding: 1.25rem; margin: 1.5rem 0; }
+  .info-box p { margin-bottom: 0; font-size: 0.875rem; color: #94a3b8; }
+  .info-box strong { color: #93c5fd; }
+  .bg-bss { background: #3b82f6; }
+  .bg-service { background: #10b981; }
+  .bg-process { background: #ec4899; }
+  .bg-resource { background: #f59e0b; }
+  .bg-api { background: #8b5cf6; }
+  .footer { text-align: center; padding: 2rem 1.5rem; color: #64748b; font-size: 0.875rem; border-top: 1px solid #1e293b; margin-top: auto; }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .mobile-toggle { display: flex; }
+    .main-content { margin-left: 0; }
+    .page-header { padding: 2rem 1.25rem 1.5rem; padding-top: 4rem; }
+    .page-header h1 { font-size: 1.5rem; }
+    .content-body { padding: 1.5rem 1.25rem; }
+  }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Foundations</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link active-blue">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <p class="section-label">Section 1.4</p>
+      <h1>Lead-to-Cash and Its Sub-Domain Processes</h1>
+      <p class="subtitle">The L2C master process decomposed into L2O, O2A, and O2C — plus the companion Trouble-to-Resolve (T2R) process.</p>
+    </div>
+
+    <div class="content-body">
+
+      <p><strong>Lead-to-Cash (L2C)</strong> is the master business process that spans the entire customer lifecycle — from the moment a sales lead is created, through order capture and service activation, to the collection of revenue. It is the end-to-end process that connects BSS and OSS systems in a coherent flow.</p>
+
+      <p>The L2C process is typically decomposed into three sub-processes, each with its own domain focus, key systems, and success criteria.</p>
+
+      <h2>L2O — Lead-to-Order</h2>
+      <p>L2O covers everything from identifying a potential customer to capturing a signed commercial order. It is the <strong>sales and commercial front-end</strong> of the lifecycle. Key activities include:</p>
+      <ul>
+        <li>Lead generation, qualification, and opportunity management (CRM)</li>
+        <li>Product selection, configuration, and pricing (CPQ, Product Catalog)</li>
+        <li>Quote generation, approval workflows, and contract signing</li>
+        <li>Order capture and validation (COM)</li>
+      </ul>
+      <p>The output of L2O is a <strong>validated commercial order</strong> ready for fulfilment. At this point, the customer has committed, and the operator must now deliver.</p>
+
+      <h2>O2A — Order-to-Activate</h2>
+      <p>O2A is the <strong>fulfilment engine</strong>. It takes the commercial order and decomposes it through the catalog layers into technical activities that result in a working service. Key activities include:</p>
+      <ul>
+        <li>Order decomposition: Product Order → Service Orders → Resource Orders</li>
+        <li>Service feasibility checking and resource availability validation</li>
+        <li>Service and resource allocation and configuration</li>
+        <li>Network activation via domain controllers (SDN, EMS, NMS)</li>
+        <li>Service testing and handover to assurance</li>
+      </ul>
+      <p>The output of O2A is an <strong>active, tested service</strong> that is ready for the customer to use. Product Inventory is updated to reflect the active product instance.</p>
+
+      <h2>O2C — Order-to-Cash</h2>
+      <p>O2C covers the <strong>revenue collection</strong> aspect of the lifecycle. It starts once the service is active and continues until the revenue is collected and reconciled. Key activities include:</p>
+      <ul>
+        <li>Usage data collection from the network (mediation)</li>
+        <li>Rating and charging (applying tariffs, discounts, promotions)</li>
+        <li>Invoice generation and delivery</li>
+        <li>Accounts receivable management, payments, and dunning</li>
+        <li>Revenue assurance — ensuring all usage is billed correctly</li>
+      </ul>
+      <p>The output of O2C is <strong>collected revenue</strong> and an accurate financial record for the operator.</p>
+
+      <h2>L2O, O2A, O2C at a Glance</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Process</th>
+              <th>Domain</th>
+              <th>Goal</th>
+              <th>Key Systems</th>
+              <th>Output</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>L2O</strong></td>
+              <td>BSS (Commercial)</td>
+              <td>Convert a lead into a signed commercial order</td>
+              <td>CRM, CPQ, Product Catalog, COM</td>
+              <td>Validated commercial order</td>
+            </tr>
+            <tr>
+              <td><strong>O2A</strong></td>
+              <td>BSS → OSS (Fulfilment)</td>
+              <td>Activate the services and resources required by the order</td>
+              <td>COM, SOM, ROM, Service Catalog, Resource Catalog, Domain Controllers</td>
+              <td>Active, tested service</td>
+            </tr>
+            <tr>
+              <td><strong>O2C</strong></td>
+              <td>BSS (Finance)</td>
+              <td>Bill the customer and collect revenue</td>
+              <td>Mediation, Rating, Billing, Accounts Receivable</td>
+              <td>Collected revenue</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>T2R — Trouble-to-Resolve</h2>
+      <p>While L2C covers the <strong>fulfilment</strong> lifecycle, T2R covers the <strong>assurance</strong> lifecycle. T2R is the process that detects, diagnoses, and resolves issues with the customer's service. It is the closed-loop counterpart to L2C: once a service is active, T2R ensures it stays healthy.</p>
+      <p>Key T2R activities include:</p>
+      <ul>
+        <li><strong>Monitoring and Detection:</strong> Network probes, performance metrics, and alarm systems detect anomalies or degradations.</li>
+        <li><strong>Ticketing and Incident Management:</strong> Issues are captured as trouble tickets, prioritised, and assigned to resolver groups.</li>
+        <li><strong>Diagnosis and Root Cause Analysis:</strong> Engineers analyse alarms, logs, and topology data to identify the root cause.</li>
+        <li><strong>Resolution and Recovery:</strong> Configuration changes, resource replacements, or traffic reroutes fix the issue.</li>
+        <li><strong>SLA Management:</strong> Outages are tracked against SLAs; credits are calculated and passed to billing.</li>
+        <li><strong>Feedback to Fulfilment:</strong> Recurring issues trigger service design or catalog changes to prevent future occurrences.</li>
+      </ul>
+
+      <h2>T2R Capabilities at a Glance</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Purpose</th>
+              <th>Key Systems</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Monitoring &amp; Detection</strong></td>
+              <td>Continuously measure service and resource health against thresholds</td>
+              <td>NMS, Performance Management, Active Probes</td>
+            </tr>
+            <tr>
+              <td><strong>Incident Management</strong></td>
+              <td>Capture, categorise, prioritise, and assign trouble tickets</td>
+              <td>Trouble Ticketing, ITSM (e.g., ServiceNow)</td>
+            </tr>
+            <tr>
+              <td><strong>Root Cause Analysis</strong></td>
+              <td>Correlate alarms and events to determine the underlying cause</td>
+              <td>AI Ops, Event Correlation, Topology Maps</td>
+            </tr>
+            <tr>
+              <td><strong>Service Restoration</strong></td>
+              <td>Execute recovery actions — reroute, reboot, reconfigure, replace</td>
+              <td>ROM, Domain Controllers, Workflow Automation</td>
+            </tr>
+            <tr>
+              <td><strong>SLA Management</strong></td>
+              <td>Calculate compliance, generate SLA reports, trigger credit workflows</td>
+              <td>SLM, Billing, Reporting</td>
+            </tr>
+            <tr>
+              <td><strong>Assurance-to-Fulfilment Feedback</strong></td>
+              <td>Feed resolution data back into catalog and service design to prevent recurrence</td>
+              <td>Service Catalog, Change Management, Knowledge Base</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>The L2C–T2R Bridge</h2>
+      <p>L2C and T2R are not independent processes — they form a continuous lifecycle with a critical feedback loop between them.</p>
+      <p>When a service is activated (O2A completes), it is handed over to Service Assurance. T2R takes over monitoring and incident management. If a problem is detected and resolved, T2R may trigger:</p>
+      <ul>
+        <li><strong>Service restoration</strong> via ROM, which may create new resource orders (re-entering O2A).</li>
+        <li><strong>SLA credit</strong> via Billing, which adjusts the customer's invoice (feeding O2C).</li>
+        <li><strong>Catalog feedback</strong> to update service designs or resource specifications if a recurring failure pattern is identified.</li>
+      </ul>
+      <p>This bridge is often the most neglected integration in telecom architecture. Operators with strong L2C processes but weak T2R integration suffer from manual handoffs, delayed SLA management, and recurring service failures that could have been prevented with proper feedback to the catalog and service design functions.</p>
+
+      <h2>Key Takeaways</h2>
+      <div class="takeaways">
+        <h3>📌 Key Takeaways</h3>
+        <ul>
+          <li><strong>Lead-to-Cash (L2C)</strong> is the master process connecting sales, fulfilment, and billing. It decomposes into <strong>L2O</strong> (commercial front-end), <strong>O2A</strong> (fulfilment), and <strong>O2C</strong> (revenue collection).</li>
+          <li>L2O is BSS-only (CRM, CPQ, COM). O2A bridges BSS and OSS (COM → SOM → ROM). O2C is BSS-only (Mediation, Rating, Billing).</li>
+          <li><strong>Trouble-to-Resolve (T2R)</strong> is the assurance counterpart to L2C, covering detection, diagnosis, resolution, and SLA management.</li>
+          <li>The <strong>L2C–T2R bridge</strong> completes the lifecycle: fulfilment hands off to assurance, and assurance feeds resolution data back into fulfilment, billing, and catalog design.</li>
+          <li>Well-integrated T2R close the loop, enabling proactive service management and reducing mean time to repair (MTTR).</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="section-nav">
+  <a href="commercial-vs-technical.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">1.3 Commercial vs Technical Domains</span>
+  </a><a href="../catalog-modeling/product-offering-specification.html" class="nav-next">
+    <span class="nav-label">Next Module &rarr;</span>
+    <span class="nav-title">2.1 Product Offering Specification</span>
+  </a>
+</div>
+
+    <footer class="footer">© 2026. Vendor-neutral. Architecture-first. Built on TM Forum standards.</footer>
+  </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

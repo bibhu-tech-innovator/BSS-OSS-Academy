@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>3.8 E2E Data Lineage &mdash; BSS/OSS Academy</title>
+<meta name="description" content="Section 3.8: End-to-End Data Lineage — Tracing data across the BSS/OSS stack, catalog-driven structural lineage, and what breaks when lineage links are missing."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: #0a0f1a;
+    border-right: 1px solid #1e293b;
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-header { padding: 1.5rem 1rem 1rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-logo { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 0.25rem; }
+  .sidebar-badge { display: inline-flex; align-items: center; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; padding: 0.125rem 0.5rem; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .sidebar-section-label { padding: 1.25rem 1rem 0.5rem; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sidebar-nav { padding: 0.25rem 0.75rem 2rem; display: flex; flex-direction: column; gap: 0.125rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+    font-size: 0.8125rem; font-weight: 500; color: #94a3b8;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link:hover { background: rgba(236,72,153,0.08); color: #e2e8f0; }
+  .sidebar-link.active { background: rgba(236,72,153,0.12); color: #f9a8d4; border-left-color: #ec4899; }
+  .sidebar-link .section-num { font-size: 0.7rem; font-weight: 600; color: #64748b; min-width: 2rem; }
+
+  .main-content { flex: 1; min-width: 0; padding: 3rem 2.5rem 4rem; max-width: 960px; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .main-content { padding: 2rem 1.25rem; }
+  }
+
+  .main-content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; line-height: 1.2; }
+  .main-content .subtitle { font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem; font-weight: 500; }
+  .main-content h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-top: 2.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .main-content h3 { font-size: 1.125rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+  .main-content p { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1rem; }
+  .main-content ul, .main-content ol { font-size: 0.9375rem; color: #cbd5e1; line-height: 1.7; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .main-content li { margin-bottom: 0.375rem; }
+  .main-content strong { color: #e2e8f0; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; color: #cbd5e1; }
+  thead { background: #0f172a; }
+  th, td { border: 1px solid #1e293b; padding: 0.75rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; color: #e2e8f0; white-space: nowrap; }
+  tbody tr { background: rgba(15,23,42,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+  .highlight { background: rgba(236,72,153,0.08); border-left: 4px solid #ec4899; padding: 1rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+  .highlight p { margin-bottom: 0; font-size: 0.875rem; color: #cbd5e1; }
+  .highlight strong { color: #f9a8d4; }
+
+  .takeaways { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; color: #f9a8d4; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .takeaways ul { margin-bottom: 0; padding-left: 1.25rem; }
+  .takeaways li { margin-bottom: 0.5rem; color: #94a3b8; }
+  .takeaways li strong { color: #e2e8f0; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; }
+  .breadcrumb a { color: #93c5fd; transition: color 0.2s; }
+  .breadcrumb a:hover { color: #bfdbfe; }
+  .breadcrumb .sep { color: #475569; }
+
+  .nav-links { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1e293b; flex-wrap: wrap; gap: 1rem; }
+  .nav-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #93c5fd; transition: color 0.2s; }
+  .nav-link:hover { color: #bfdbfe; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: #2563eb; color: #fff; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background 0.2s; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); border: none; cursor: pointer; font-size: 0.875rem; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+
+  .diagram-box {
+    background: rgba(15,23,42,0.5);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .diagram-box .layer {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem; margin: 0.25rem 0;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  .layer-com { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .layer-som { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .layer-rom { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .diagram-box .arrow { color: #475569; font-size: 1.25rem; padding: 0.25rem 0; }
+  .diagram-box .label { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Order Management (COM/SOM/ROM)</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link active-pink">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <nav class="breadcrumb">
+      <a href="../../">Home</a>
+      <span class="sep">/</span>
+      <a href="../../modules">Modules</a>
+      <span class="sep">/</span>
+      <a href="../../modules/com-som-rom/index.html">Module 3</a>
+      <span class="sep">/</span>
+      <span>3.8 E2E Data Lineage</span>
+    </nav>
+
+    <h1>3.8 End-to-End Data Lineage</h1>
+    <p class="subtitle">Tracing Data Across the BSS/OSS Stack</p>
+
+    <!-- ============================================================ -->
+    <h2>What Is Data Lineage in a BSS/OSS Context?</h2>
+    <p>Data lineage is the practice of tracking data as it flows through systems, transformations, and processes from its origin to its destination. In a BSS/OSS architecture, data lineage answers the question: "Where did this value come from, and how did it get to where it is now?" For every entity in the order lifecycle &mdash; the customer's name, the product price, the IP address assigned to a CPE, the VLAN ID configured on a switch &mdash; there should be a clear, auditable chain of provenance.</p>
+    <p>In catalog-driven architectures, data lineage is not just an operational concern &mdash; it is a structural property of the architecture itself. The three-layer catalog (Product, Service, Resource) defines the relationships between entities at each level. The product specification references one or more service specifications; each service specification references resource specifications; each resource specification defines the network configuration parameters. When an order is processed, these catalog relationships are instantiated as data lineage links between the commercial order, the service order, the resource order, and the resulting inventory records. The lineage is structural because it is defined by the catalog design, not discovered after the fact through log analysis or data mining.</p>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> Structural data lineage means that for any given customer-facing service instance, you can trace backward through the catalog to see exactly which product offering created it, and forward through the activation chain to see which network resources were configured. This traceability is built into the architecture, not bolted on afterwards.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>The Data Lineage Chain</h2>
+    <p>The complete data lineage chain in a telecom BSS/OSS spans from the customer entity through to the physical network element. Each link in the chain represents a relationship that is created at order time and persists for the lifetime of the service. The chain is bidirectional: you can trace forward from a customer to see all their active network resources, or trace backward from a network interface to see which customer service it supports.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Lineage Link</th>
+            <th>Source Entity</th>
+            <th>Target Entity</th>
+            <th>Created By</th>
+            <th>System of Record</th>
+            <th>TM Forum API</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Customer to Account</td>
+            <td>Party / Individual</td>
+            <td>Customer Account</td>
+            <td>CRM onboarding process</td>
+            <td>CRM (TMF629)</td>
+            <td>Customer Management</td>
+          </tr>
+          <tr>
+            <td>Account to Commercial Order</td>
+            <td>Customer Account</td>
+            <td>Product Order</td>
+            <td>Order capture in CPQ / Portal</td>
+            <td>COM System</td>
+            <td>TMF622 Product Ordering</td>
+          </tr>
+          <tr>
+            <td>Commercial Order to Product Offering</td>
+            <td>Product Order Item</td>
+            <td>Product Offering / Product Spec</td>
+            <td>Order item references catalog entry</td>
+            <td>Product Catalog (TMF620)</td>
+            <td>Product Catalog Management</td>
+          </tr>
+          <tr>
+            <td>Product Offering to Service Spec (CFS)</td>
+            <td>Product Specification</td>
+            <td>Customer Facing Service Spec</td>
+            <td>Catalog design; defined in product-to-service mapping</td>
+            <td>Service Catalog (TMF633)</td>
+            <td>Service Catalog Management</td>
+          </tr>
+          <tr>
+            <td>Commercial Order to Service Order</td>
+            <td>Product Order (COM)</td>
+            <td>Service Order (SOM)</td>
+            <td>COM decomposition at order orchestration</td>
+            <td>SOM System</td>
+            <td>TMF641 Service Ordering</td>
+          </tr>
+          <tr>
+            <td>Service Order to CFS Instance</td>
+            <td>Service Order Item</td>
+            <td>Service Instance (CFS)</td>
+            <td>Service activation in SOM</td>
+            <td>Service Inventory (TMF638)</td>
+            <td>Service Inventory Management</td>
+          </tr>
+          <tr>
+            <td>CFS Instance to RFS Instance</td>
+            <td>Customer Facing Service</td>
+            <td>Resource Facing Service</td>
+            <td>Service design / topology mapping</td>
+            <td>Service Inventory (TMF638)</td>
+            <td>Service Inventory Management</td>
+          </tr>
+          <tr>
+            <td>Service Spec (RFS) to Resource Spec</td>
+            <td>Resource Facing Service Spec</td>
+            <td>Resource Specification</td>
+            <td>Catalog design; defined in service-to-resource mapping</td>
+            <td>Resource Catalog (TMF634)</td>
+            <td>Resource Catalog Management</td>
+          </tr>
+          <tr>
+            <td>Service Order to Resource Order</td>
+            <td>Service Order (SOM)</td>
+            <td>Resource Order (ROM)</td>
+            <td>SOM decomposition at orchestration</td>
+            <td>ROM System</td>
+            <td>TMF652 Resource Ordering</td>
+          </tr>
+          <tr>
+            <td>Resource Order to Resource Instance</td>
+            <td>Resource Order Item</td>
+            <td>Resource Instance</td>
+            <td>Resource activation in ROM</td>
+            <td>Resource Inventory (TMF639)</td>
+            <td>Resource Inventory Management</td>
+          </tr>
+          <tr>
+            <td>Resource Instance to Network Element</td>
+            <td>Logical Resource</td>
+            <td>Physical / Logical NE</td>
+            <td>Domain controller configuration push</td>
+            <td>Network Inventory / CMDB</td>
+            <td>Vendor-specific (NETCONF, RESTCONF, SNMP)</td>
+          </tr>
+          <tr>
+            <td>Order to Billing Event</td>
+            <td>Product Order (COM)</td>
+            <td>Billing Account / Invoice</td>
+            <td>Billing system event on order completion</td>
+            <td>Billing / Charging System</td>
+            <td>Custom or TMF670 (Billing)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Structural vs. Discovered Lineage</h2>
+    <p>It is important to distinguish between <strong>structural lineage</strong>, which is defined by architecture and catalog design, and <strong>discovered lineage</strong>, which is inferred from runtime data analysis. In well-architected BSS/OSS platforms, the majority of data lineage should be structural &mdash; embedded in the relationships between catalog entities and the order decomposition logic. This provides deterministic traceability: given any entity, the lineage system can traverse known relationships without having to infer connections from log files or data mining.</p>
+    <p>Structural lineage is built into the architecture through several mechanisms:</p>
+    <ul>
+      <li><strong>Catalog relationship traversal:</strong> The product catalog defines which service specifications are related to each product specification. The service catalog defines which resource specifications are related to each service specification. These relationships form a directed graph that can be traversed programmatically.</li>
+      <li><strong>Order item correlation:</strong> Every order item across all three layers carries correlation IDs that link it back to its parent order. A service order item references the commercial order item ID that triggered it; a resource order item references the service order item ID. These correlation IDs create the vertical lineage across layers.</li>
+      <li><strong>Inventory linkage:</strong> When an order is fulfilled, the resulting service and resource instances are linked to their source order items. The service inventory record includes the service order ID; the resource inventory record includes the resource order ID. This creates the horizontal lineage from order to inventory.</li>
+      <li><strong>Reference integrity:</strong> Foreign-key relationships in the data model enforce referential integrity between lineage entities. A resource instance cannot exist without a parent service instance; a service instance cannot exist without a parent product order item. This guarantees that the lineage chain is complete.</li>
+    </ul>
+    <p>In contrast, discovered lineage relies on techniques such as log parsing, network packet inspection, or machine learning to infer relationships between entities. Discovered lineage is inherently probabilistic and may miss edges or introduce false positives. It is typically used in legacy environments where structural lineage was not designed into the architecture, or as a supplement to structural lineage for runtime analysis and anomaly detection.</p>
+
+    <!-- ============================================================ -->
+    <h2>What Breaks When Lineage Links Are Missing</h2>
+    <p>In many telecom operators, the data lineage chain is broken at one or more points. These breaks may be the result of legacy system integration gaps, manual data entry, catalog design errors, or simply the absence of a catalog-driven architecture. When lineage links are missing, downstream operations become unreliable:</p>
+    <ul>
+      <li><strong>Customer service cannot trace issues:</strong> When a customer calls to report a fault, the customer service representative needs to trace from the customer account to the affected network resources. If the lineage from the commercial order to the service order is missing, the CSR cannot determine which technical services are associated with the customer's product. They may resort to manually searching multiple systems, leading to long call handling times and poor customer experience.</li>
+      <li><strong>Change management becomes risky:</strong> When a network engineer needs to decommission a switch port, they must first determine which services are using that port. Without lineage from the resource instance back to the service and commercial orders, they cannot assess the impact of the change. This leads to either unnecessarily conservative change windows or, worse, accidental service-disrupting changes.</li>
+      <li><strong>Billing disputes cannot be resolved:</strong> A billing dispute requires tracing from the billed amount back to the product offering, the agreed price, and the service delivery evidence. Without lineage from the billing event to the commercial order and then to the activated service, billing disputes become "he said, she said" exercises with no objective audit trail.</li>
+      <li><strong>Orchestration cannot compensate correctly:</strong> When a multi-item order fails, the orchestration engine must determine which activities to compensate. Without accurate lineage linking order items to their activated resources, the engine cannot determine which resources were already allocated and therefore cannot execute a precise compensation plan. This results in stranded assets &mdash; resources that were provisioned but are no longer associated with any active order.</li>
+      <li><strong>Regulatory compliance is compromised:</strong> Telecom regulators often require operators to demonstrate that services are delivered as ordered, with accurate records of what was provisioned, when, and for whom. Without end-to-end lineage, compliance audits become manual, expensive, and unreliable.</li>
+      <li><strong>Network planning lacks demand context:</strong> When planning network expansions, planners need to understand which customer segments and service types are driving resource utilisation. Without lineage from resource instance back to product offering, planners can see that a port is at 80% utilisation but cannot determine which products or customer segments are consuming that capacity.</li>
+    </ul>
+
+    <div class="highlight">
+      <p><strong>Key insight:</strong> A broken lineage link at any point in the chain cascades to all downstream and upstream operations. If the link between the service order and the commercial order is missing, it is not just a COM-SOM integration problem &mdash; it also breaks billing, customer service, assurance, and network planning. Data lineage is a cross-cutting architectural concern, not a point-to-point integration detail.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>Lineage in the Three-Layer Order Model</h2>
+    <p>The three-layer order model (COM/SOM/ROM) inherently creates a structured lineage for every order. When a commercial order is created, it establishes a root node in the lineage graph. The decomposition engine creates service order nodes linked to the commercial order node. Each service order item node links to its CFS and RFS specifications. The resource orders create resource order nodes linked to the service orders. And when activation is complete, resource instance nodes are linked to the resource order items, completing the chain down to the network element level.</p>
+    <p>The following diagram illustrates the lineage flow through the three-layer model:</p>
+
+    <div class="diagram-box">
+      <div class="layer layer-com">Customer Account &rarr; Commercial Order &rarr; Product Offering</div>
+      <div class="arrow">&darr; Decomposition creates lineage link</div>
+      <div class="layer layer-som">Service Order &rarr; CFS Instance &rarr; RFS Instance</div>
+      <div class="arrow">&darr; Decomposition creates lineage link</div>
+      <div class="layer layer-rom">Resource Order &rarr; Resource Instance &rarr; Network Element</div>
+      <div class="label">Each arrow represents a lineage relationship that is created at order time and persisted in the respective inventory systems</div>
+    </div>
+
+    <p>Each link in this chain is bidirectional and carries metadata about the relationship type, the effective date range, the order that created it, and any transformation logic that was applied. For example, the link between a commercial order item and its resulting CFS instance carries the mapping rules that were applied during decomposition: "speedTier = '100Mbps'" was mapped from the commercial characteristic to "committedInformationRate = '100000'" on the CFS specification. This metadata is essential for impact analysis, change management, and dispute resolution.</p>
+
+    <!-- ============================================================ -->
+    <h2>Catalog-Driven Lineage: How the Catalogs Define the Chain</h2>
+    <p>The three catalogs (Product, Service, Resource) collectively define the schema for data lineage in a catalog-driven architecture. Each catalog specification includes relationship attributes that define how entities at one layer connect to entities at the next layer. These relationships are the blueprints for the lineage chain.</p>
+    <p>At the <strong>Product Catalog</strong> level, a Product Specification includes a list of related Service Specifications through the <code>productSpecServiceSpecRelationship</code> attribute. This relationship defines which CFS specifications are required to fulfil the product, which service characteristics map to which product characteristics, and whether the service is mandatory or optional. When a commercial order is decomposed, the workflow engine reads these relationships to determine which service orders to create.</p>
+    <p>At the <strong>Service Catalog</strong> level, a Service Specification (particularly RFS specifications) includes relationships to Resource Specifications. The <code>serviceSpecResourceSpecRelationship</code> attribute defines which resource types are needed, how capacity is allocated, and which resource characteristics are set based on service characteristics. When a service order is decomposed, these relationships drive the resource order creation.</p>
+    <p>At the <strong>Resource Catalog</strong> level, Resource Specifications define the technical parameters for activation. While the resource catalog does not typically include downward relationships to physical network elements (those are defined by network inventory), it does define the resource characteristics that will be populated during activation and recorded in the resource inventory.</p>
+    <p>Together, these catalog relationships create a complete, queryable lineage schema. A lineage engine can traverse from any entity in the chain to any other entity by following the catalog-defined relationships. This makes it possible to answer questions such as: "Which customers are affected if I decommission router R2?" (trace from router in resource inventory up through service inventory to customer account) or "Which network resources are used by customer Acme Corp?" (trace from customer account down through orders to resource inventory).</p>
+
+    <!-- ============================================================ -->
+    <h2>Implementing Lineage in a BSS/OSS Platform</h2>
+    <p>Implementing end-to-end data lineage requires both architectural design decisions and operational practices. The following principles are essential for building a platform with reliable, useful data lineage:</p>
+    <ul>
+      <li><strong>Correlation IDs at every boundary:</strong> Every API call between systems must carry a correlation ID that links the downstream request to the upstream entity. When COM calls SOM to create a service order, the request should include the commercial order ID and the commercial order item ID. When SOM calls ROM, the request should include the service order ID and item ID. These correlation IDs become the foreign keys of the lineage graph.</li>
+      <li><strong>Immutable order records:</strong> Order records should be append-only with versioning. When an order is modified (e.g., a change order), the original record is preserved and the new version links to it. This preserves historical lineage even as orders evolve over time.</li>
+      <li><strong>Central lineage registry:</strong> A dedicated lineage registry or graph database can store lineage relationships as first-class entities. This enables cross-system lineage queries without requiring joins across multiple system databases. The lineage registry is populated by events emitted from each order management system as lineage links are created.</li>
+      <li><strong>Automated lineage validation:</strong> Continuous validation checks that every entity in the chain has the required parent and child links. Orphaned service instances (no parent commercial order) or childless resource instances (no parent service order) are flagged for investigation. This catches integration gaps and data quality issues early.</li>
+      <li><strong>Lineage-aware compensation:</strong> The orchestration engine uses lineage relationships to determine compensation scope. When a resource order fails, the engine queries the lineage registry to identify all sibling resource orders (same parent service order) and determines whether they should also be compensated.</li>
+      <li><strong>Exposed lineage APIs:</strong> TM Forum provides guidelines for lineage APIs, but in practice, most operators implement custom lineage query APIs that expose the graph traversal capabilities to downstream consumers such as customer service portals, assurance dashboards, and network planning tools.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Common Lineage Anti-Patterns</h2>
+    <p>Through years of BSS/OSS integration experience, several common anti-patterns have been identified that undermine data lineage. Recognising these anti-patterns is the first step toward avoiding them:</p>
+    <ul>
+      <li><strong>The "Tower of Babel" pattern:</strong> Each system maintains its own entity identifiers with no shared correlation ID. The CRM uses its own customer ID, the order hub uses a different order ID, and the network inventory uses yet another resource ID. Without a common correlation mechanism, tracing across systems requires manual cross-referencing of multiple look-up tables.</li>
+      <li><strong>The "Copy Everything" pattern:</strong> Each system copies data from upstream systems into its own data model rather than referencing the authoritative source. The service order system stores a copy of the customer name and address; the resource order system stores another copy. When the customer updates their address in the CRM, the copies in downstream systems become stale, breaking the lineage between the current customer data and the service records.</li>
+      <li><strong>The "Siloed Lifecycle" pattern:</strong> Each layer manages its lifecycle independently without propagating state changes. A service order may be cancelled in SOM, but the cancellation event is not propagated to the linked commercial order, leaving the commercial order in a "completed" state even though the underlying service was never delivered.</li>
+      <li><strong>The "Magic Transformation" pattern:</strong> Data transformations between layers are performed in custom code with no audit trail. The mapping from commercial characteristics to service characteristics is done in a Java method or an XSLT transform that is not documented in the catalog. When the lineage is traced, the transformation step is a black box.</li>
+      <li><strong>The "Orphan Proliferation" pattern:</strong> Resource instances are created during testing, troubleshooting, or failed orders and are never cleaned up. These orphaned resources appear in the lineage graph as entities with no parent, polluting the data and making it difficult to distinguish active services from stale artefacts.</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2>Lineage and the Simulated Order Workflow</h2>
+    <p>The concept of data lineage is closely related to the Simulate Order Workflow (Section 3.9). A simulation of an order workflow is essentially a dry-run of the data lineage chain: it follows the same decomposition and activation steps as a real order but without actually committing changes to the inventory or network. The simulation validates that the lineage links can be created correctly &mdash; that each decomposition step produces valid entities with the correct correlation IDs, that the characteristic mappings are complete, and that the resulting chain is fully connected from customer through to resource.</p>
+    <p>Simulation tools in modern BSS/OSS platforms allow operators to visualise the lineage chain before the order is processed. They can see exactly which CFS instances would be created, which RFS instances would be needed, which resource specifications would be selected, and which network elements would be configured. If the simulation reveals a broken lineage link &mdash; perhaps a missing service-to-resource mapping in the catalog &mdash; the catalog can be corrected before the broken link causes a production failure.</p>
+    <p>This tight relationship between lineage and simulation is one of the key advantages of catalog-driven architectures. Because the lineage is defined structurally in the catalogs, it can be simulated and validated without executing the order. In legacy systems where lineage is implicit in the code, there is no way to validate the lineage without actually running the order and checking the results.</p>
+
+    <!-- ============================================================ -->
+    <div class="takeaways">
+      <h3>Key Takeaways</h3>
+      <ul>
+        <li><strong>Data lineage</strong> in a BSS/OSS context is the ability to trace any entity (customer, order, service, resource) through its complete lifecycle across all systems, with clear provenance for every attribute value.</li>
+        <li><strong>Structural lineage</strong> is built into catalog-driven architectures through the relationships defined between product, service, and resource specifications. This is far more reliable than discovered lineage inferred from runtime logs.</li>
+        <li><strong>The lineage chain</strong> spans from Customer Account through Commercial Order, Service Order, Resource Order, and Inventory to the physical Network Element. Each link carries metadata about the relationship type, the order that created it, and any transformations applied.</li>
+        <li><strong>Broken lineage links</strong> cascade into operational failures across customer service, change management, billing, orchestration compensation, regulatory compliance, and network planning.</li>
+        <li><strong>Correlation IDs</strong> at every system boundary are the foundational mechanism for building data lineage. Every API call must carry the upstream entity IDs to create the lineage graph.</li>
+        <li><strong>The three catalogs</strong> (TMF620, TMF633, TMF634) collectively define the relationship schema that drives structural lineage. The product-to-service and service-to-resource mappings are the blueprints for the lineage chain.</li>
+        <li><strong>Simulation</strong> (Section 3.9) validates the lineage chain by performing a dry-run of the decomposition and activation steps, detecting missing or incorrect catalog relationships before they cause production failures.</li>
+      </ul>
+    </div>
+
+    <!-- Nav links -->
+    </div><div class="section-nav">
+  <a href="bpmn-workflows.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous</span>
+    <span class="nav-title">3.7 BPMN 2.0 Workflows</span>
+  </a><a href="simulate-order-workflow.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">3.9 Simulate Order Workflow</span>
+  </a>
+</div>
+
+    </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>

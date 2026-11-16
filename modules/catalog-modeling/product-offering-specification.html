@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>2.1 Product Offering vs Specification — BSS/OSS Academy</title>
+<meta name="description" content="The difference between what you sell (Offering) and what it is (Specification)."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220; color: #e2e8f0; min-height: 100vh;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 280px; flex-shrink: 0; background: #0f172a;
+    border-right: 1px solid #1e293b; position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 50; overflow-y: auto; transition: transform 0.3s ease;
+  }
+  .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #1e293b; }
+  .sidebar-header h1 { font-size: 1.125rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.01em; }
+  .sidebar-header p { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+  .sidebar-nav { padding: 1rem 0; }
+  .sidebar-module {
+    padding: 0.625rem 1.5rem; color: #94a3b8; font-size: 0.875rem; font-weight: 500;
+    transition: all 0.15s; cursor: pointer;
+  }
+  .sidebar-module:hover { background: rgba(30,41,59,0.5); color: #e2e8f0; }
+  .sidebar-module.active { background: rgba(16,185,129,0.12); color: #6ee7b7; border-left: 3px solid #10b981; }
+  .sidebar-number {
+    display: flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 0.375rem;
+    font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .sidebar-subnav { padding: 0.25rem 0 0.5rem calc(1.5rem + 1.5rem + 0.75rem); }
+  .sidebar-subnav a {
+    display: block; padding: 0.375rem 0.75rem; font-size: 0.8125rem;
+    color: #64748b; border-radius: 0.25rem; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar-subnav a:hover { color: #94a3b8; background: rgba(30,41,59,0.3); }
+  .sidebar-subnav a.active { color: #6ee7b7; font-weight: 500; border-left-color: #10b981; }
+  .mobile-toggle {
+    display: none; position: fixed; top: 1rem; left: 1rem; z-index: 60;
+    background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; cursor: pointer;
+    align-items: center; justify-content: center; font-size: 1.25rem;
+  }
+  .mobile-toggle:hover { background: #334155; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,0.5); }
+  .main-content { flex: 1; margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; }
+  .page-header { padding: 3rem 2rem 2rem; border-bottom: 1px solid #1e293b; }
+  .page-header .section-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .page-header h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
+  .page-header .subtitle { font-size: 1.125rem; color: #94a3b8; font-weight: 500; max-width: 42rem; }
+  .content-body { padding: 2rem; max-width: 800px; }
+  .content-body h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e293b; }
+  .content-body h2:first-child { margin-top: 0; }
+  .content-body h3 { font-size: 1.25rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.75rem; }
+  .content-body p { font-size: 0.9375rem; line-height: 1.75; color: #cbd5e1; margin-bottom: 1rem; }
+  .content-body ul, .content-body ol { margin: 0 0 1rem 1.5rem; font-size: 0.9375rem; line-height: 1.75; color: #cbd5e1; }
+  .content-body li { margin-bottom: 0.25rem; }
+  .content-body strong { color: #f1f5f9; font-weight: 600; }
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 600px; }
+  thead { background: #0f172a; }
+  th { text-align: left; padding: 0.75rem 1rem; border: 1px solid #1e293b; color: #f1f5f9; font-weight: 600; font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 0.75rem 1rem; border: 1px solid #1e293b; color: #cbd5e1; line-height: 1.5; }
+  tr:hover td { background: rgba(30,41,59,0.3); }
+  .takeaways { background: rgba(15,23,42,0.6); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0; }
+  .takeaways h3 { margin-top: 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: #f1f5f9; }
+  .takeaways ul { margin-bottom: 0; }
+  .takeaways li { margin-bottom: 0.5rem; }
+  .takeaways li:last-child { margin-bottom: 0; }
+  .info-box { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-left: 3px solid #10b981; border-radius: 0.5rem; padding: 1.25rem; margin: 1.5rem 0; }
+  .info-box p { margin-bottom: 0; font-size: 0.875rem; color: #94a3b8; }
+  .info-box strong { color: #6ee7b7; }
+  .diagram-box { background: rgba(15,23,42,0.5); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0; text-align: center; }
+  .diagram-box .diagram-title { font-size: 0.875rem; font-weight: 600; color: #f1f5f9; margin-bottom: 1rem; }
+  .diagram-box .diagram-desc { font-size: 0.8125rem; color: #94a3b8; }
+  .bg-service { background: #10b981; }
+  .bg-bss { background: #3b82f6; }
+  .bg-process { background: #ec4899; }
+  .bg-resource { background: #f59e0b; }
+  .bg-api { background: #8b5cf6; }
+  .footer { text-align: center; padding: 2rem 1.5rem; color: #64748b; font-size: 0.875rem; border-top: 1px solid #1e293b; margin-top: auto; }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .mobile-toggle { display: flex; }
+    .main-content { margin-left: 0; }
+    .page-header { padding: 2rem 1.25rem 1.5rem; padding-top: 4rem; }
+    .page-header h1 { font-size: 1.5rem; }
+    .content-body { padding: 1.5rem 1.25rem; }
+  }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+details.sidebar-module { margin-bottom: 0; border: none; background: none; }
+summary.sidebar-module-header { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.8125rem; font-weight: 500; color: #94a3b8; list-style: none; user-select: none; }
+.sidebar-module-header-inner { display: flex; align-items: center; gap: 0.5rem; }
+summary.sidebar-module-header::-webkit-details-marker { display: none; }
+summary.sidebar-module-header::marker { display: none; content: ''; }
+summary.sidebar-module-header:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+details.sidebar-module[open] > summary.sidebar-module-header { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+.sidebar-module-sections { padding-left: 0.5rem; }
+.sidebar-section-link {
+  display: flex; align-items: center; gap: 0.375rem;
+  padding: 0.35rem 0.5rem; border-radius: 0.25rem;
+  font-size: 0.75rem; font-weight: 400; color: #64748b;
+  border-left: 2px solid transparent; transition: all 0.15s;
+  margin-bottom: 1px; text-decoration: none;
+}
+.sidebar-section-link:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+.sidebar-section-link.active-blue { color: #93c5fd; border-left-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sidebar-section-link.active-emerald { color: #6ee7b7; border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+.sidebar-section-link.active-pink { color: #f9a8d4; border-left-color: #ec4899; background: rgba(236,72,153,0.08); }
+.sidebar-section-link.active-amber { color: #fcd34d; border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+.sidebar-section-link.active-purple { color: #c4b5fd; border-left-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.sidebar-section-link .section-num { font-size: 0.65rem; color: #64748b; min-width: 1.8rem; }
+details.sidebar-module[open] > summary.sidebar-module-header .num { opacity: 1; }
+.section-nav { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem 2rem 0; max-width: 800px; }
+.section-nav a { flex: 1; display: flex; flex-direction: column; padding: 1rem 1.25rem; border: 1px solid #1e293b; border-radius: 0.5rem; text-decoration: none; transition: all 0.15s; }
+.section-nav a:hover { border-color: #475569; background: rgba(255,255,255,0.02); }
+.section-nav a:only-child { max-width: 50%; }
+.section-nav .nav-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+.section-nav .nav-title { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.section-nav .nav-next { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+
+  <nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><a href="../../index.html">BSS/OSS Academy</a><small>Catalog Modeling Deep Dive</small></div>
+  <div class="sidebar-nav">
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">1</span>
+        <span>Foundations</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/foundations/bss-vs-oss.html" class="sidebar-section-link">
+          <span class="section-num">1.1</span> BSS vs OSS
+        </a>
+        <a href="../../modules/foundations/catalog-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">1.2</span> Catalog-Driven Architecture
+        </a>
+        <a href="../../modules/foundations/commercial-vs-technical.html" class="sidebar-section-link">
+          <span class="section-num">1.3</span> Commercial vs Technical Domains
+        </a>
+        <a href="../../modules/foundations/l2c-process-domains.html" class="sidebar-section-link">
+          <span class="section-num">1.4</span> L2C Process Domains
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module" open>
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">2</span>
+        <span>Catalog Modeling Deep Dive</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/catalog-modeling/product-offering-specification.html" class="sidebar-section-link active-emerald">
+          <span class="section-num">2.1</span> Product Offering Specification
+        </a>
+        <a href="../../modules/catalog-modeling/cfs-rfs-resource.html" class="sidebar-section-link">
+          <span class="section-num">2.2</span> CFS/RFS &amp; Resource Specs
+        </a>
+        <a href="../../modules/catalog-modeling/relationships-decomposition.html" class="sidebar-section-link">
+          <span class="section-num">2.3</span> Relationships &amp; Decomposition
+        </a>
+        <a href="../../modules/catalog-modeling/connectivity-example.html" class="sidebar-section-link">
+          <span class="section-num">2.4</span> Connectivity Example
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">3</span>
+        <span>Order Management (COM/SOM/ROM)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/com-som-rom/order-management-overview.html" class="sidebar-section-link">
+          <span class="section-num">3.1</span> Order Management Overview
+        </a>
+        <a href="../../modules/com-som-rom/commercial-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.2</span> Commercial Order Management (COM)
+        </a>
+        <a href="../../modules/com-som-rom/service-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.3</span> Service Order Management (SOM)
+        </a>
+        <a href="../../modules/com-som-rom/resource-order-management.html" class="sidebar-section-link">
+          <span class="section-num">3.4</span> Resource Order Management (ROM)
+        </a>
+        <a href="../../modules/com-som-rom/orchestration-domains.html" class="sidebar-section-link">
+          <span class="section-num">3.5</span> Orchestration Domains
+        </a>
+        <a href="../../modules/com-som-rom/slm-installed-base.html" class="sidebar-section-link">
+          <span class="section-num">3.6</span> SLM Installed Base
+        </a>
+        <a href="../../modules/com-som-rom/bpmn-workflows.html" class="sidebar-section-link">
+          <span class="section-num">3.7</span> BPMN 2.0 Workflows
+        </a>
+        <a href="../../modules/com-som-rom/e2e-data-lineage.html" class="sidebar-section-link">
+          <span class="section-num">3.8</span> E2E Data Lineage
+        </a>
+        <a href="../../modules/com-som-rom/simulate-order-workflow.html" class="sidebar-section-link">
+          <span class="section-num">3.9</span> Simulate Order Workflow
+        </a>
+        <a href="../../modules/com-som-rom/hybrid-com-som.html" class="sidebar-section-link">
+          <span class="section-num">3.10</span> Hybrid COM/SOM (ACL)
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">4</span>
+        <span>Network Inventory &amp; Activation</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/inventory-activation/inventory-overview.html" class="sidebar-section-link">
+          <span class="section-num">4.1</span> Inventory Overview
+        </a>
+        <a href="../../modules/inventory-activation/ems-nms-architecture.html" class="sidebar-section-link">
+          <span class="section-num">4.2</span> EMS/NMS Architecture
+        </a>
+        <a href="../../modules/inventory-activation/activation-provisioning.html" class="sidebar-section-link">
+          <span class="section-num">4.3</span> Activation &amp; Provisioning
+        </a>
+        <a href="../../modules/inventory-activation/resource-inventory.html" class="sidebar-section-link">
+          <span class="section-num">4.4</span> Resource Inventory
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">5</span>
+        <span>Billing &amp; Revenue Management</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/billing/overview.html" class="sidebar-section-link">
+          <span class="section-num">5.1</span> Billing Overview
+        </a>
+        <a href="../../modules/billing/rating-charging.html" class="sidebar-section-link">
+          <span class="section-num">5.2</span> Rating &amp; Charging
+        </a>
+        <a href="../../modules/billing/mediation.html" class="sidebar-section-link">
+          <span class="section-num">5.3</span> Mediation
+        </a>
+        <a href="../../modules/billing/subscription-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.4</span> Subscription Billing
+        </a>
+        <a href="../../modules/billing/convergent-billing.html" class="sidebar-section-link">
+          <span class="section-num">5.5</span> Convergent Billing
+        </a>
+        <a href="../../modules/billing/revenue-assurance.html" class="sidebar-section-link">
+          <span class="section-num">5.6</span> Revenue Assurance
+        </a>
+        <a href="../../modules/billing/dunning-collections.html" class="sidebar-section-link">
+          <span class="section-num">5.7</span> Dunning &amp; Collections
+        </a>
+        <a href="../../modules/billing/interconnect-roaming.html" class="sidebar-section-link">
+          <span class="section-num">5.8</span> Interconnect &amp; Roaming
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-emerald">6</span>
+        <span>Service Assurance</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/service-assurance/overview.html" class="sidebar-section-link">
+          <span class="section-num">6.1</span> Service Assurance Overview
+        </a>
+        <a href="../../modules/service-assurance/fault-management.html" class="sidebar-section-link">
+          <span class="section-num">6.2</span> Fault Management Pipeline
+        </a>
+        <a href="../../modules/service-assurance/l2c-assurance-bridge.html" class="sidebar-section-link">
+          <span class="section-num">6.3</span> The L2C-Assurance Bridge
+        </a>
+        <a href="../../modules/service-assurance/slm-cmdb-integration.html" class="sidebar-section-link">
+          <span class="section-num">6.4</span> SLM-CMDB Integration
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">7</span>
+        <span>TM Forum Open APIs</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/tmf-open-apis/api-introduction.html" class="sidebar-section-link">
+          <span class="section-num">7.1</span> API Introduction
+        </a>
+        <a href="../../modules/tmf-open-apis/api-reference.html" class="sidebar-section-link">
+          <span class="section-num">7.2</span> API Reference
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-pink">8</span>
+        <span>TM Forum Frameworks (eTOM/ODA)</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/etom-processes/etom-overview.html" class="sidebar-section-link">
+          <span class="section-num">8.1</span> eTOM Overview
+        </a>
+        <a href="../../modules/etom-processes/oda-framework.html" class="sidebar-section-link">
+          <span class="section-num">8.2</span> ODA Framework
+        </a>
+        <a href="../../modules/etom-processes/lead-to-cash.html" class="sidebar-section-link">
+          <span class="section-num">8.3</span> Lead to Cash
+        </a>
+        <a href="../../modules/etom-processes/process-system-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.4</span> Process-System Mapping
+        </a>
+        <a href="../../modules/etom-processes/etom-l1-l3-mapping.html" class="sidebar-section-link">
+          <span class="section-num">8.5</span> eTOM L1-L3 Mapping
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">9</span>
+        <span>Vendor Landscape</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/vendor-landscape/vendor-overview.html" class="sidebar-section-link">
+          <span class="section-num">9.1</span> Vendor Overview
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-profiles.html" class="sidebar-section-link">
+          <span class="section-num">9.2</span> Vendor Profiles
+        </a>
+        <a href="../../modules/vendor-landscape/vendor-comparison.html" class="sidebar-section-link">
+          <span class="section-num">9.3</span> Vendor Comparison
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-purple">10</span>
+        <span>Architecture Patterns</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/architecture-comparison/monolith-vs-modular.html" class="sidebar-section-link">
+          <span class="section-num">10.1</span> Monolith vs Modular
+        </a>
+        <a href="../../modules/architecture-comparison/event-driven-architecture.html" class="sidebar-section-link">
+          <span class="section-num">10.2</span> Event-Driven Architecture
+        </a>
+        <a href="../../modules/architecture-comparison/migration-coexistence.html" class="sidebar-section-link">
+          <span class="section-num">10.3</span> Migration &amp; Coexistence
+        </a>
+        <a href="../../modules/architecture-comparison/bff-channel-patterns.html" class="sidebar-section-link">
+          <span class="section-num">10.4</span> BFF Channel Patterns
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-amber">11</span>
+        <span>Multi-Domain Orchestration</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/orchestration-nfv/cross-domain-orchestration.html" class="sidebar-section-link">
+          <span class="section-num">11.1</span> Cross-Domain Orchestration
+        </a>
+        <a href="../../modules/orchestration-nfv/cross-domain-composition.html" class="sidebar-section-link">
+          <span class="section-num">11.2</span> Cross-Domain Composition
+        </a>
+        <a href="../../modules/orchestration-nfv/domain-integration-pattern.html" class="sidebar-section-link">
+          <span class="section-num">11.3</span> Domain Integration Pattern
+        </a>
+        <a href="../../modules/orchestration-nfv/fixed-access-broadband.html" class="sidebar-section-link">
+          <span class="section-num">11.4</span> Fixed Access &amp; Broadband
+        </a>
+        <a href="../../modules/orchestration-nfv/ip-mpls-transport.html" class="sidebar-section-link">
+          <span class="section-num">11.5</span> IP/MPLS Transport
+        </a>
+        <a href="../../modules/orchestration-nfv/mobile-core-integration.html" class="sidebar-section-link">
+          <span class="section-num">11.6</span> Mobile Core Integration
+        </a>
+        <a href="../../modules/orchestration-nfv/network-orchestrator-variants.html" class="sidebar-section-link">
+          <span class="section-num">11.7</span> Network Orchestrator Variants
+        </a>
+      </div>
+    </details>
+    <details class="sidebar-module">
+      <summary class="sidebar-module-header"><div class="sidebar-module-header-inner">
+        <span class="num num-blue">12</span>
+        <span>B2B Enterprise BSS</span>
+      </div></summary>
+      <div class="sidebar-module-sections">
+        <a href="../../modules/b2b-enterprise/b2b-vs-b2c.html" class="sidebar-section-link">
+          <span class="section-num">12.1</span> B2B vs B2C
+        </a>
+        <a href="../../modules/b2b-enterprise/enterprise-cpq.html" class="sidebar-section-link">
+          <span class="section-num">12.2</span> Enterprise CPQ
+        </a>
+        <a href="../../modules/b2b-enterprise/clm-and-inventory.html" class="sidebar-section-link">
+          <span class="section-num">12.3</span> CLM &amp; Inventory
+        </a>
+      </div>
+    </details>
+  </div>
+</nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <p class="section-label">Section 2.1</p>
+      <h1>Product Offering vs Specification</h1>
+      <p class="subtitle">The difference between what you sell (Offering) and what it is (Specification)</p>
+    </div>
+
+    <div class="content-body">
+
+      <p>One of the most fundamental concepts in catalog-driven telecom architecture is the distinction between a <strong>Product Offering</strong> and a <strong>Product Specification</strong>. While they are closely related, they serve entirely different purposes and live on different sides of the commercial-to-technical boundary.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Offerings Reference Specifications</div>
+        <svg width="600" height="200" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="20" width="260" height="80" rx="10" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="2"/>
+          <text x="150" y="55" text-anchor="middle" fill="#93c5fd" font-size="16" font-weight="600">Product Offering</text>
+          <text x="150" y="78" text-anchor="middle" fill="#94a3b8" font-size="12">What the customer buys</text>
+          <rect x="320" y="100" width="260" height="80" rx="10" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="2"/>
+          <text x="450" y="135" text-anchor="middle" fill="#6ee7b7" font-size="16" font-weight="600">Product Specification</text>
+          <text x="450" y="158" text-anchor="middle" fill="#94a3b8" font-size="12">What the product is</text>
+          <line x1="280" y1="60" x2="320" y2="140" stroke="#475569" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowhead)"/>
+          <defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#475569"/></marker></defs>
+          <text x="300" y="85" fill="#64748b" font-size="11" transform="rotate(-20, 300, 85)">references</text>
+        </svg>
+        <div class="diagram-desc">Offerings reference Specifications. One Specification can be referenced by many Offerings.</div>
+      </div>
+
+      <h2>Product Offering (PO)</h2>
+      <p>A <strong>Product Offering</strong> is the commercial representation of a product — what the customer sees, selects, and purchases. It is the sellable entity in the catalog and contains all the commercial attributes that drive customer engagement, ordering, and billing.</p>
+
+      <h3>Key Attributes of a Product Offering</h3>
+      <ul>
+        <li><strong>Name &amp; Description:</strong> The customer-facing title and marketing description (e.g. "SuperFibre 200 Home").</li>
+        <li><strong>Pricing:</strong> One-time fees, recurring charges, usage rates, discounts, promotions. The offering references a pricing table or tariff structure.</li>
+        <li><strong>Channel Eligibility:</strong> Which sales channels can sell this offering (online, retail, partner, direct sales).</li>
+        <li><strong>Customer Eligibility:</strong> Segment restrictions (residential vs business), credit checks, geographic availability.</li>
+        <li><strong>Bundling Rules:</strong> Whether the offering is a standalone product, a bundle, or a component of a bundle. Includes mandatory and optional components.</li>
+        <li><strong>Validity Periods:</strong> Start and end dates for when the offering can be sold.</li>
+        <li><strong>SLAs:</strong> Service level commitments associated with the offering (e.g. 24-hour repair, 99.9% uptime).</li>
+      </ul>
+
+      <p>In TM Forum terminology, the Product Offering is the entity that sits in the <strong>Product Catalog</strong> and is consumed by CRM, CPQ, and Order Management systems.</p>
+
+      <h2>Product Specification (PS)</h2>
+      <p>A <strong>Product Specification</strong> is the technical definition of a product — what the product actually is, independent of how it is packaged, priced, or sold. It describes the product's characteristics, its relationship to services, and the rules for how it is composed.</p>
+
+      <h3>Key Attributes of a Product Specification</h3>
+      <ul>
+        <li><strong>Characteristics:</strong> Technical parameters such as bandwidth, data cap, latency class, technology type (FTTH, DSL, 5G).</li>
+        <li><strong>CFS Linkage:</strong> The service specification(s) that must be instantiated to deliver this product. This is the critical bridge from commercial to technical.</li>
+        <li><strong>Composition Rules:</strong> How the specification decomposes into sub-specifications. Defines the structural hierarchy.</li>
+        <li><strong>Compatibility:</strong> Which other specifications can be combined with this one in a bundle, and which are incompatible.</li>
+        <li><strong>Lifecycle States:</strong> Draft, Active, Retired, Obsolete. Governs the specification's operational availability.</li>
+      </ul>
+
+      <h2>The Many-to-One Relationship</h2>
+      <p>A single Product Specification can be referenced by <strong>multiple Product Offerings</strong>, each with different pricing, branding, and channel strategies. This is the core reason for the separation:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product Offering A</th>
+              <th>Product Offering B</th>
+              <th>Product Specification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>"SuperFibre 200 Home"<br/><span style="color:#64748b;font-size:0.8rem;">£39.99/mo, residential online</span></td>
+              <td>"SuperFibre 200 Business"<br/><span style="color:#64748b;font-size:0.8rem;">£59.99/mo, business SLA 24h</span></td>
+              <td rowspan="2"><strong>200Mbps FTTH Spec</strong><br/><span style="color:#64748b;font-size:0.8rem;">200/20 Mbps, FTTH, /29 IPv4</span></td>
+            </tr>
+            <tr>
+              <td>"SuperFibre 200 + Voice"<br/><span style="color:#64748b;font-size:0.8rem;">£44.99/mo, bundle with VoIP</span></td>
+              <td>"SuperFibre 200 Promo Q3"<br/><span style="color:#64748b;font-size:0.8rem;">£29.99/mo, 12-month contract</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>This many-to-one pattern allows operators to innovate on commercial strategy (new offers, pricing, bundles) without redefining the underlying product each time. It also simplifies the OSS domain — the Service and Resource Catalogs only need to understand the Specification, not every variant of the Offering.</p>
+
+      <h2>Bundles</h2>
+      <p>Bundles are Product Offerings that contain other Product Offerings. A bundle offering references its component offerings, each of which references its own specification. Bundles can be:</p>
+      <ul>
+        <li><strong>Mandatory:</strong> Components that are always included and cannot be removed.</li>
+        <li><strong>Optional:</strong> Components the customer can choose to add or remove.</li>
+        <li><strong>Exclusive:</strong> Components that are mutually exclusive (choose one of N).</li>
+      </ul>
+      <p>When a bundle is ordered, the COM system decomposes the bundle order into individual component orders, each of which follows its own fulfilment path through to service and resource activation.</p>
+
+      <div class="info-box">
+        <p><strong>Key insight:</strong> Bundling is a commercial construct. The Product Specification does not change when a product is bundled — only the Offering changes. This is why the PO/PS separation is essential for bundle management.</p>
+      </div>
+
+      <h2>Key Takeaways</h2>
+      <div class="takeaways">
+        <h3>Key Takeaways</h3>
+        <ul>
+          <li><strong>Product Offering</strong> is what you sell — it carries price, channel, eligibility, and bundling rules.</li>
+          <li><strong>Product Specification</strong> is what the product is — it carries technical characteristics, CFS linkage, and composition rules.</li>
+          <li>One Specification can serve <strong>many Offerings</strong>, enabling commercial agility without technical redefinition.</li>
+          <li>Bundles are Offerings that contain other Offerings — they decompose at the commercial layer before touching the service layer.</li>
+          <li>The PO/PS separation is the foundation of catalog-driven architecture and the key to decoupling commercial innovation from network operations.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="section-nav">
+  <a href="../foundations/l2c-process-domains.html" class="nav-prev">
+    <span class="nav-label">&larr; Previous Module</span>
+    <span class="nav-title">1.4 L2C Process Domains</span>
+  </a><a href="cfs-rfs-resource.html" class="nav-next">
+    <span class="nav-label">Next &rarr;</span>
+    <span class="nav-title">2.2 CFS/RFS &amp; Resource Specs</span>
+  </a>
+</div>
+
+    <footer class="footer">© 2026. Vendor-neutral. Architecture-first. Built on TM Forum standards.</footer>
+  </main>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>
