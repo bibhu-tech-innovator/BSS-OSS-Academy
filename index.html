@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
+<title>BSS/OSS Academy</title>
+<meta name="description" content="A vendor-neutral educational platform for understanding modern telecom BSS/OSS architecture, catalog-driven design, and TM Forum standards."/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0B1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: inherit; text-decoration: none; }
+  .min-h-screen { min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: -10;
+    background: #020617;
+  }
+  .hero-gradient-top {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 90% 70% at 50% -10%, rgba(139,92,246,0.35), transparent);
+  }
+  .hero-gradient-bottom {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 90%, rgba(34,197,94,0.2), transparent);
+  }
+  .hero-content {
+    position: relative; z-index: 10;
+    max-width: 1152px; margin: 0 auto;
+    padding: 4rem 1.5rem 4rem;
+    display: flex; flex-direction: column;
+  }
+  @media (min-width: 768px) {
+    .hero-content { padding: 6rem 1.5rem 6rem; flex-direction: row; align-items: center; gap: 2rem; }
+  }
+  .hero-text { flex: 1; min-width: 0; }
+  .hero h1 {
+    font-size: 2.25rem; font-weight: 700; letter-spacing: -0.025em;
+    margin-bottom: 1rem; line-height: 1.2;
+  }
+  @media (min-width: 768px) { .hero h1 { font-size: 3rem; } }
+  .hero-subtitle {
+    font-size: 1.25rem; color: #bfdbfe; font-weight: 500;
+    margin-bottom: 1.5rem; max-width: 42rem; line-height: 1.4;
+  }
+  @media (min-width: 768px) { .hero-subtitle { font-size: 1.5rem; } }
+  .hero-desc {
+    font-size: 1rem; color: #94a3b8; line-height: 1.625;
+    max-width: 42rem; margin-bottom: 1rem;
+  }
+  .hero-built {
+    font-size: 0.875rem; color: #64748b; margin-bottom: 2rem;
+  }
+  .hero-built a {
+    color: #93c5fd; text-decoration: underline; text-underline-offset: 2px;
+    transition: color 0.2s;
+  }
+  .hero-built a:hover { color: #bfdbfe; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: #2563eb; color: #fff; font-weight: 600;
+    padding: 0.75rem 1.5rem; border-radius: 0.5rem;
+    transition: background 0.2s;
+    box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3);
+    border: none; cursor: pointer; font-size: 1rem;
+  }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-primary svg { width: 1rem; height: 1rem; }
+  .hero-fade {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4rem;
+    background: linear-gradient(to top, #0B1220, transparent);
+    z-index: 2;
+  }
+
+  /* Content Section */
+  .content-section {
+    max-width: 1024px; margin: 0 auto;
+    padding: 4rem 1.5rem; width: 100%;
+  }
+  .content-section h2 {
+    font-size: 1.5rem; font-weight: 700; color: #f1f5f9;
+    margin-bottom: 0.5rem;
+  }
+  @media (min-width: 768px) { .content-section h2 { font-size: 1.875rem; } }
+  .content-desc {
+    color: #94a3b8; font-size: 1rem; margin-bottom: 2rem;
+    max-width: 42rem; line-height: 1.625;
+  }
+  .card-grid {
+    display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+  }
+  @media (min-width: 768px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Card */
+  .card {
+    display: flex; flex-direction: column;
+    position: relative;
+    border-radius: 0.75rem;
+    border: 1px solid #1e293b;
+    border-left: 4px solid;
+    background: rgba(15,23,42,0.4);
+    padding: 1.5rem;
+    transition: all 0.2s;
+    height: 100%;
+  }
+  .card:hover { border-color: #475569; }
+  .card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 0.75rem; }
+  .card-emoji { font-size: 1.5rem; line-height: 1; }
+  .card-number {
+    display: flex; align-items: center; justify-content: center;
+    width: 1.75rem; height: 1.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem; font-weight: 700; color: #fff;
+  }
+  .card-badge {
+    display: inline-flex; align-items: center;
+    border-radius: 9999px; font-weight: 500;
+    font-size: 0.75rem; padding: 0.125rem 0.5rem;
+  }
+  .card h3 {
+    font-size: 1.125rem; font-weight: 600; color: #f1f5f9;
+    margin-bottom: 0.25rem;
+  }
+  .card-subtitle {
+    font-size: 0.875rem; font-weight: 500; color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+  .card-desc {
+    font-size: 0.875rem; color: #94a3b8;
+    line-height: 1.625; margin-bottom: 1rem;
+    flex-grow: 1;
+  }
+  .card-footer {
+    display: flex; align-items: center; gap: 0.25rem;
+    font-size: 0.75rem; color: #94a3b8; margin-top: auto;
+  }
+  .card-footer svg { width: 1rem; height: 1rem; }
+
+  /* Card color variants */
+  .border-bss { border-left-color: #3b82f6; }
+  .border-service { border-left-color: #10b981; }
+  .border-process { border-left-color: #ec4899; }
+  .border-resource { border-left-color: #f59e0b; }
+  .border-api { border-left-color: #8b5cf6; }
+  .bg-bss { background: #3b82f6; }
+  .bg-service { background: #10b981; }
+  .bg-process { background: #ec4899; }
+  .bg-resource { background: #f59e0b; }
+  .bg-api { background: #8b5cf6; }
+  .badge-blue { background: rgba(30,58,138,0.4); color: #93c5fd; }
+  .badge-emerald { background: rgba(6,78,59,0.4); color: #6ee7b7; }
+  .badge-pink { background: rgba(131,24,67,0.4); color: #f9a8d4; }
+  .badge-amber { background: rgba(120,53,15,0.4); color: #fcd34d; }
+  .badge-purple { background: rgba(91,33,182,0.4); color: #c4b5fd; }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 2rem 1.5rem;
+    color: #64748b; font-size: 0.875rem;
+    border-top: 1px solid #1e293b; margin-top: auto;
+  }
+
+  /* Reviews section */
+  .reviews-section { margin-top: 3rem; }
+  .reviews-section h2 { font-size: 1.25rem; }
+</style>
+</head>
+<body>
+
+
+<div class="min-h-screen">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-gradient-top"></div>
+      <div class="hero-gradient-bottom"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>BSS/OSS Academy</h1>
+        <p class="hero-subtitle">Master telecom architecture — from catalog design to order orchestration</p>
+        <p class="hero-desc">A vendor-neutral educational platform for understanding modern telecom BSS/OSS architecture, catalog-driven design, and TM Forum standards.</p>
+        <p class="hero-built">Built by <a href="https://www.linkedin.com/in/bibhu-software-architect" target="_blank" rel="noopener noreferrer">Bibhu Mishra</a></p>
+        <a href="#modules-content" class="btn-primary">
+          Start Learning
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div class="hero-fade"></div>
+  </section>
+
+  <!-- Educational Content -->
+  <section id="modules-content" class="content-section">
+    <h2>Educational Content</h2>
+    <p class="content-desc">A structured curriculum covering BSS/OSS foundations, catalog modeling, order orchestration, TM Forum standards, and real-world vendor implementations.</p>
+    <div class="card-grid">
+
+      <!-- 1 -->
+      <a href="modules/foundations/index.html" class="card border-bss">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🏗️</span>
+            <span class="card-number bg-bss">1</span>
+          </div>
+          <span class="card-badge badge-blue">Available</span>
+        </div>
+        <h3>Foundations</h3>
+        <p class="card-subtitle">BSS/OSS Core Concepts</p>
+        <p class="card-desc">Understand the fundamental architecture of telecom BSS and OSS systems, catalog-driven design, and the critical distinction between commercial and technical domains.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>4 sections</span>
+        </div>
+      </a>
+
+      <!-- 2 -->
+      <a href="modules/catalog-modeling/index.html" class="card border-service">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">📐</span>
+            <span class="card-number bg-service">2</span>
+          </div>
+          <span class="card-badge badge-emerald">Available</span>
+        </div>
+        <h3>Catalog Modeling Deep Dive</h3>
+        <p class="card-subtitle">Product, Service &amp; Resource Catalogs</p>
+        <p class="card-desc">Master the three-layer catalog model: Product Offerings and Specifications, CFS/RFS decomposition, and how catalogs drive the entire order-to-activate chain.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>4 sections</span>
+        </div>
+      </a>
+
+      <!-- 3 -->
+      <a href="modules/com-som-rom/index.html" class="card border-process">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🔄</span>
+            <span class="card-number bg-process">3</span>
+          </div>
+          <span class="card-badge badge-pink">Available</span>
+        </div>
+        <h3>Order Management (COM/SOM/ROM)</h3>
+        <p class="card-subtitle">The Order Orchestration Chain</p>
+        <p class="card-desc">How commercial orders decompose into service orders and resource orders, with orchestration at every layer.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>10 sections</span>
+        </div>
+      </a>
+
+      <!-- 4 -->
+      <a href="modules/inventory-activation/index.html" class="card border-resource">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">📦</span>
+            <span class="card-number bg-resource">4</span>
+          </div>
+          <span class="card-badge badge-amber">Available</span>
+        </div>
+        <h3>Network Inventory &amp; Activation</h3>
+        <p class="card-subtitle">Physical &amp; Logical Resource Inventory</p>
+        <p class="card-desc">Managing physical and logical network resources — devices, ports, VLANs, IP addresses, and topology. How Resource Inventory feeds activation, capacity planning, and service assurance.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>4 sections</span>
+        </div>
+      </a>
+
+      <!-- 5 -->
+      <a href="modules/billing/index.html" class="card border-bss">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">💰</span>
+            <span class="card-number bg-bss">5</span>
+          </div>
+          <span class="card-badge badge-blue">Available</span>
+        </div>
+        <h3>Billing &amp; Revenue Management</h3>
+        <p class="card-subtitle">From Usage to Cash</p>
+        <p class="card-desc">Rating, charging, mediation, subscription billing, interconnect &amp; roaming, convergent billing, revenue assurance, and dunning — how telcos turn service usage into revenue.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>8 sections</span>
+        </div>
+      </a>
+
+      <!-- 6 -->
+      <a href="modules/service-assurance/index.html" class="card border-service">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🛡️</span>
+            <span class="card-number bg-service">6</span>
+          </div>
+          <span class="card-badge badge-emerald">Available</span>
+        </div>
+        <h3>Service Assurance</h3>
+        <p class="card-subtitle">Bridging Fulfilment and Assurance</p>
+        <p class="card-desc">How Lead-to-Cash fulfilment connects to Service Assurance and Trouble-to-Resolve — the handoff via SLM, service and resource data, CMDB integration, feedback loops, and what breaks when the bridge is missing.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>4 sections</span>
+        </div>
+      </a>
+
+      <!-- 7 -->
+      <a href="modules/tmf-open-apis/index.html" class="card border-api">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🔌</span>
+            <span class="card-number bg-api">7</span>
+          </div>
+          <span class="card-badge badge-purple">Available</span>
+        </div>
+        <h3>TM Forum Open APIs</h3>
+        <p class="card-subtitle">API-First Integration</p>
+        <p class="card-desc">How TMF Open APIs enable interoperability between BSS/OSS components, with real API mapping per domain.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>2 sections</span>
+        </div>
+      </a>
+
+      <!-- 8 -->
+      <a href="modules/etom-processes/index.html" class="card border-process">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🗺️</span>
+            <span class="card-number bg-process">8</span>
+          </div>
+          <span class="card-badge badge-pink">Available</span>
+        </div>
+        <h3>TM Forum Frameworks</h3>
+        <p class="card-subtitle">ODA, eTOM, SID, TAM &amp; Process Flows</p>
+        <p class="card-desc">The core TM Forum frameworks — Open Digital Architecture (ODA), Business Process Framework (eTOM), Information Framework (SID), and Functional Framework (TAM) — with end-to-end process walkthroughs.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>5 sections</span>
+        </div>
+      </a>
+
+      <!-- 9 -->
+      <a href="modules/vendor-landscape/index.html" class="card border-bss">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🏢</span>
+            <span class="card-number bg-bss">9</span>
+          </div>
+          <span class="card-badge badge-blue">Available</span>
+        </div>
+        <h3>Vendor Landscape</h3>
+        <p class="card-subtitle">Real-World Implementations</p>
+        <p class="card-desc">Factual comparison of major BSS/OSS vendors: what they cover, where they excel, and common deployment patterns.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>3 sections</span>
+        </div>
+      </a>
+
+      <!-- 10 -->
+      <a href="modules/architecture-comparison/index.html" class="card border-api">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🏛️</span>
+            <span class="card-number bg-api">10</span>
+          </div>
+          <span class="card-badge badge-purple">Available</span>
+        </div>
+        <h3>Architecture Patterns</h3>
+        <p class="card-subtitle">Monolith vs Microservices vs ODA</p>
+        <p class="card-desc">Comparing traditional, microservices, and TM Forum ODA approaches to BSS/OSS architecture.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>4 sections</span>
+        </div>
+      </a>
+
+      <!-- 11 -->
+      <a href="modules/orchestration-nfv/index.html" class="card border-resource">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🔧</span>
+            <span class="card-number bg-resource">11</span>
+          </div>
+          <span class="card-badge badge-amber">Available</span>
+        </div>
+        <h3>Multi-Domain Orchestration</h3>
+        <p class="card-subtitle">Network Integration &amp; Service Orchestration</p>
+        <p class="card-desc">How OSS orchestrates fulfilment across IP/MPLS, mobile core, transport, and access domains. Establishes the strict layering between COM/SOM, cross-domain orchestration, and ROM/domain controllers, and works through the integration patterns, protocols, and worked examples that turn an RFS into configured network state.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>7 sections</span>
+        </div>
+      </a>
+
+      <!-- 12 -->
+      <a href="modules/b2b-enterprise/index.html" class="card border-bss">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-emoji">🏢</span>
+            <span class="card-number bg-bss">12</span>
+          </div>
+          <span class="card-badge badge-blue">Available</span>
+        </div>
+        <h3>B2B Enterprise BSS</h3>
+        <p class="card-subtitle">Enterprise BSS Patterns</p>
+        <p class="card-desc">How enterprise BSS differs from consumer: account hierarchies, contract-first ordering, solution-level CPQ, and contract lifecycle management.</p>
+        <div class="card-footer">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          <span>3 sections</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Reviews -->
+    <div class="reviews-section">
+      <h2>Reviews</h2>
+      <p class="content-desc">What practitioners are saying — curated from LinkedIn and direct feedback.</p>
+      <p class="content-desc" style="margin-top: -1.5rem;">Leave feedback</p>
+      <p class="content-desc">No reviews yet.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    © 2026. Vendor-neutral. Architecture-first. Built on TM Forum standards.
+  </footer>
+
+</div>
+</body>
+</html>
